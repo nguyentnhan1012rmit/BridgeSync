@@ -1,0 +1,101 @@
+{
+  "common": {
+    "appName": "BridgeSync",
+    "language": "Language",
+    "search": "Search...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "export": "Export",
+    "loading": "Loading...",
+    "noData": "No data available"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "projects": "Projects",
+    "tasks": "Tasks",
+    "hourenso": "Hourenso Reports",
+    "glossary": "IT Glossary",
+    "settings": "Settings"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome back",
+    "activeProjects": "Active Projects",
+    "pendingTasks": "Pending Tasks",
+    "reportsThisWeek": "Reports This Week",
+    "translationsSaved": "Translations Saved",
+    "recentActivity": "Recent Activity",
+    "quickActions": "Quick Actions"
+  },
+  "projects": {
+    "title": "Projects",
+    "newProject": "New Project",
+    "projectName": "Project Name",
+    "client": "Client",
+    "status": "Status",
+    "dueDate": "Due Date",
+    "members": "Members",
+    "statusOptions": {
+      "active": "Active",
+      "onHold": "On Hold",
+      "completed": "Completed",
+      "planning": "Planning"
+    }
+  },
+  "tasks": {
+    "title": "Tasks",
+    "newTask": "New Task",
+    "taskName": "Task Name",
+    "assignee": "Assignee",
+    "priority": "Priority",
+    "dueDate": "Due Date",
+    "description": "Description",
+    "priorityOptions": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "hoverToTranslate": "Hover over highlighted terms for instant translation"
+  },
+  "hourenso": {
+    "title": "Hourenso Reports",
+    "subtitle": "Japanese business reporting aligned with 報連相 etiquette",
+    "newReport": "New Report",
+    "exportExcel": "Export to Excel",
+    "sections": {
+      "houkoku": "報告 (Houkoku) — Report",
+      "renraku": "連絡 (Renraku) — Contact / Share",
+      "soudan": "相談 (Soudan) — Consult"
+    },
+    "fields": {
+      "reportDate": "Report Date",
+      "reporter": "Reporter",
+      "project": "Project",
+      "currentStatus": "Current Status",
+      "progress": "Progress",
+      "issues": "Issues / Blockers",
+      "nextSteps": "Next Steps",
+      "sharedInfo": "Shared Information",
+      "consultTopic": "Consultation Topic",
+      "options": "Options / Proposals",
+      "deadline": "Decision Deadline"
+    }
+  },
+  "glossary": {
+    "title": "IT Glossary",
+    "searchTerms": "Search terms...",
+    "term": "Term",
+    "english": "English",
+    "vietnamese": "Vietnamese",
+    "japanese": "Japanese",
+    "category": "Category"
+  },
+  "language": {
+    "en": "English",
+    "vi": "Tiếng Việt",
+    "ja": "日本語"
+  }
+}

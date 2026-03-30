@@ -1,0 +1,101 @@
+{
+  "common": {
+    "appName": "BridgeSync",
+    "language": "Ngôn ngữ",
+    "search": "Tìm kiếm...",
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "delete": "Xóa",
+    "edit": "Chỉnh sửa",
+    "create": "Tạo mới",
+    "export": "Xuất",
+    "loading": "Đang tải...",
+    "noData": "Không có dữ liệu"
+  },
+  "nav": {
+    "dashboard": "Bảng điều khiển",
+    "projects": "Dự án",
+    "tasks": "Công việc",
+    "hourenso": "Báo cáo Hourenso",
+    "glossary": "Từ điển IT",
+    "settings": "Cài đặt"
+  },
+  "dashboard": {
+    "title": "Bảng điều khiển",
+    "welcome": "Chào mừng trở lại",
+    "activeProjects": "Dự án đang hoạt động",
+    "pendingTasks": "Công việc chờ xử lý",
+    "reportsThisWeek": "Báo cáo tuần này",
+    "translationsSaved": "Bản dịch đã lưu",
+    "recentActivity": "Hoạt động gần đây",
+    "quickActions": "Thao tác nhanh"
+  },
+  "projects": {
+    "title": "Dự án",
+    "newProject": "Dự án mới",
+    "projectName": "Tên dự án",
+    "client": "Khách hàng",
+    "status": "Trạng thái",
+    "dueDate": "Ngày đến hạn",
+    "members": "Thành viên",
+    "statusOptions": {
+      "active": "Đang hoạt động",
+      "onHold": "Tạm dừng",
+      "completed": "Hoàn thành",
+      "planning": "Lập kế hoạch"
+    }
+  },
+  "tasks": {
+    "title": "Công việc",
+    "newTask": "Công việc mới",
+    "taskName": "Tên công việc",
+    "assignee": "Người thực hiện",
+    "priority": "Độ ưu tiên",
+    "dueDate": "Ngày đến hạn",
+    "description": "Mô tả",
+    "priorityOptions": {
+      "high": "Cao",
+      "medium": "Trung bình",
+      "low": "Thấp"
+    },
+    "hoverToTranslate": "Di chuột vào thuật ngữ được đánh dấu để xem bản dịch"
+  },
+  "hourenso": {
+    "title": "Báo cáo Hourenso",
+    "subtitle": "Báo cáo kinh doanh Nhật Bản theo nghi thức 報連相",
+    "newReport": "Báo cáo mới",
+    "exportExcel": "Xuất ra Excel",
+    "sections": {
+      "houkoku": "報告 (Houkoku) — Báo cáo",
+      "renraku": "連絡 (Renraku) — Liên lạc / Chia sẻ",
+      "soudan": "相談 (Soudan) — Tham vấn"
+    },
+    "fields": {
+      "reportDate": "Ngày báo cáo",
+      "reporter": "Người báo cáo",
+      "project": "Dự án",
+      "currentStatus": "Trạng thái hiện tại",
+      "progress": "Tiến độ",
+      "issues": "Vấn đề / Trở ngại",
+      "nextSteps": "Bước tiếp theo",
+      "sharedInfo": "Thông tin chia sẻ",
+      "consultTopic": "Chủ đề tham vấn",
+      "options": "Phương án / Đề xuất",
+      "deadline": "Hạn quyết định"
+    }
+  },
+  "glossary": {
+    "title": "Từ điển IT",
+    "searchTerms": "Tìm thuật ngữ...",
+    "term": "Thuật ngữ",
+    "english": "Tiếng Anh",
+    "vietnamese": "Tiếng Việt",
+    "japanese": "Tiếng Nhật",
+    "category": "Danh mục"
+  },
+  "language": {
+    "en": "English",
+    "vi": "Tiếng Việt",
+    "ja": "日本語"
+  }
+}
