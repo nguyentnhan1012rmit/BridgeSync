@@ -1,6 +1,8 @@
 const express = require('express');
 const app = express();
 const mongoose = require('mongoose');
+const { protect, authorize } = require('./middleware/authMiddleware')
+const authRoutes = require('./routes/authRoutes')
 require('dotenv').config();
 const cors = require('cors');
 const corsOptions = {
@@ -9,10 +11,26 @@ const corsOptions = {
 
 app.use(cors(corsOptions))
 app.use(express.json())
-// All routes here
-app.get('/', (req,res) => {
-    res.send("Hello world from backend")
-})
 
+const connectDB = async () => {
+    try {
+        await mongoose.connect(process.env.DATABASE_URI)
+        console.log("Database connected");
+    }
+    catch (err) {
+        console.error("Database lost connection", err.message);
+
+    }
+}
+connectDB();
+
+// Mount routes
+app.use('/api/auth', authRoutes);
+
+
+// PM api
+app.get('/api/admin/dashboard', protect, authorize('PM'), (req, res) => {
+    res.json({ message: 'Welcome to the PM Dashboard' });
+});
 
 app.listen(3000, () => console.log("Server started on ", process.env.PORT))
