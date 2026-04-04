@@ -13,6 +13,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         enum: ['en', 'vi', 'ja'],
         default: 'en'
+    },
+    refreshToken: {
+        type: String,
+        default: null
     }
 }, { timestamps: true });
 

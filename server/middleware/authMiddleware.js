@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/Users');
+require('dotenv').config()
 
 const protect = async (req, res, next) => {
     let token;
@@ -8,7 +9,7 @@ const protect = async (req, res, next) => {
         try {
             token = req.headers.authorization.split(' ')[1];
 
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
 
             req.user = await User.findById(decoded.id).select('-password');
 
@@ -24,6 +25,7 @@ const protect = async (req, res, next) => {
     }
 };
 
+
 const authorize = (...roles) => {
     return (req, res, next) => {
         if (!roles.includes(req.user.role)) {
@@ -32,5 +34,7 @@ const authorize = (...roles) => {
         next();
     };
 };
+
+
 
 module.exports = { protect, authorize };

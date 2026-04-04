@@ -2,7 +2,10 @@ const express = require('express');
 const app = express();
 const mongoose = require('mongoose');
 const { protect, authorize } = require('./middleware/authMiddleware')
+
 const authRoutes = require('./routes/authRoutes')
+const projectRoutes = require('./routes/projectRoutes')
+const taskRoutes = require('./routes/taskRoutes')
 require('dotenv').config();
 const cors = require('cors');
 const corsOptions = {
@@ -26,7 +29,8 @@ connectDB();
 
 // Mount routes
 app.use('/api/auth', authRoutes);
-
+app.use('/api/projects', projectRoutes);
+app.use('/api/tasks/', taskRoutes)
 
 // PM api
 app.get('/api/admin/dashboard', protect, authorize('PM'), (req, res) => {
