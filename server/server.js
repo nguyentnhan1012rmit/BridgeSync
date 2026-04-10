@@ -8,6 +8,7 @@ const projectRoutes = require('./routes/projectRoutes')
 const taskRoutes = require('./routes/taskRoutes')
 const glossaryRoutes = require('./routes/glossaryRoutes')
 const translationRoutes = require('./routes/translationRoutes')
+const hourensoRoutes = require('./routes/hourensoRoutes');
 require('dotenv').config();
 const cors = require('cors');
 const corsOptions = {
@@ -34,7 +35,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/tasks/', taskRoutes);
 app.use('/api/glossary/', glossaryRoutes);
-app.use('/api/translate/', translationRoutes)
+app.use('/api/translate/', translationRoutes);
+app.use('/api/hourenso', hourensoRoutes);
 
 // PM api
 app.get('/api/admin/dashboard', protect, authorize('PM'), (req, res) => {
