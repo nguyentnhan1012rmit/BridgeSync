@@ -11,8 +11,10 @@ import {
   Menu,
   X,
   ChevronLeft,
+  LogOut,
 } from 'lucide-react'
 import LanguageToggle from '@/components/LanguageToggle'
+import { useAuth } from '@/hooks/useAuth'
 
 const navItems = [
   { key: 'dashboard', path: '/', icon: LayoutDashboard },
@@ -25,6 +27,7 @@ const navItems = [
 
 export default function MainLayout() {
   const { t } = useTranslation()
+  const { user, logout } = useAuth()
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [mobileOpen, setMobileOpen] = useState(false)
 
@@ -114,12 +117,12 @@ export default function MainLayout() {
         {sidebarOpen && (
           <div className="p-4 border-t border-border">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent to-primary flex items-center justify-center text-white text-xs font-bold">
-                BS
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent to-primary flex items-center justify-center text-white text-xs font-bold uppercase">
+                {user?.name?.charAt(0) || 'BS'}
               </div>
-              <div className="overflow-hidden">
-                <p className="text-sm font-medium text-text-primary truncate">BrSE User</p>
-                <p className="text-xs text-text-muted truncate">bridge@company.jp</p>
+              <div className="overflow-hidden flex-1">
+                <p className="text-sm font-medium text-text-primary truncate">{user?.name || 'Guest User'}</p>
+                <p className="text-xs text-text-muted truncate">{user?.email || 'guest@bridgesync.com'}</p>
               </div>
             </div>
           </div>
@@ -141,6 +144,13 @@ export default function MainLayout() {
 
           <div className="flex items-center gap-4">
             <LanguageToggle />
+            <button
+               onClick={logout}
+               title="Log Out"
+               className="p-2 text-danger hover:bg-danger/10 hover:text-danger rounded-lg transition-colors cursor-pointer"
+            >
+              <LogOut size={20} />
+            </button>
           </div>
         </header>
 

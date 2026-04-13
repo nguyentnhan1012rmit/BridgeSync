@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next'
+import { useAuth } from '@/hooks/useAuth'
 import {
   FolderKanban,
   ListChecks,
@@ -26,13 +27,16 @@ const recentActivity = [
 
 export default function DashboardPage() {
   const { t } = useTranslation()
+  const { user } = useAuth()
 
   return (
     <div className="space-y-8 max-w-7xl">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-text-primary">{t('dashboard.title')}</h1>
-        <p className="text-text-secondary mt-1">{t('dashboard.welcome')}, BrSE User 👋</p>
+        <p className="text-text-secondary mt-1">
+          {t('dashboard.welcome')}, {user?.name || 'User'} 👋
+        </p>
       </div>
 
       {/* Stats Grid */}

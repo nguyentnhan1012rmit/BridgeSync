@@ -41,3 +41,14 @@ BridgeSync contains three core MVP features specifically designed to bridge the 
         *   **連絡 (Renraku) — Contact/Share:** Information that needs to be shared with the broader team without requiring immediate action.
         *   **相談 (Soudan) — Consult:** specific topics requiring stakeholder decisions, proposed options, and deadlines.
     *   **One-Click Export to Excel:** Because many Japanese corporate stakeholders heavily rely on spreadsheets and might be resistant to adopting a new web portal, the application includes a `Download` button. This button uses the `xlsx` library to instantly compile all active reports into a formatted Excel file, bridging the gap between modern agile tools and traditional corporate workflows.
+
+## 4. Secure Backend & Translation Fallback Strategy
+
+**The Problem:** Storing sensitive API keys on the frontend is a security risk, and a static mock glossary doesn't scale. Moreover, different project members need explicit data boundaries to avoid unintentional edits.
+
+**The Solution:** A dedicated Node.js/Express backend that handles data persistence, authentication, and secure translation API proxying.
+
+*   **Implementation:** Express REST API, MongoDB (Mongoose), JWT authentication, Document referencing.
+*   **Mechanics:**
+    *   **Role-Based Access Control (RBAC):** Users authenticate via JWT. Specific roles (`PM`, `BrSE`, `Developer`, `Japanese client`) determine API permissions. Middlewares like `authorize('PM')` ensure strict scoping over endpoints (e.g., users can only view `scopedProject`s they belong to).
+    *   **Translation Fallback System:** The backend's `/api/translate` endpoint orchestrates translations gracefully. It **first** queries the custom `ITGlossary` database for high-accuracy terms. If a definition doesn't exist, it safely communicates with the external **DeepL API** (concealing the server's `DEEPL_API_KEY`) to fetch and return the translation.
