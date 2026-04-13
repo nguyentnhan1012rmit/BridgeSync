@@ -11,6 +11,7 @@ const taskRoutes = require('./routes/taskRoutes')
 const glossaryRoutes = require('./routes/glossaryRoutes')
 const translationRoutes = require('./routes/translationRoutes')
 const hourensoRoutes = require('./routes/hourensoRoutes');
+const statsRoutes = require('./routes/statsRoutes');
 const corsOptions = {
     origin: ["http://localhost:5173"]
 }
@@ -37,6 +38,7 @@ app.use('/api/tasks/', taskRoutes);
 app.use('/api/glossary/', glossaryRoutes);
 app.use('/api/translate/', translationRoutes);
 app.use('/api/hourenso', hourensoRoutes);
+app.use('/api/stats', statsRoutes);
 
 // PM api
 app.get('/api/admin/dashboard', protect, authorize('PM'), (req, res) => {

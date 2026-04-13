@@ -26,7 +26,7 @@
     "activeProjects": "進行中のプロジェクト",
     "pendingTasks": "未処理のタスク",
     "reportsThisWeek": "今週のレポート",
-    "translationsSaved": "保存された翻訳",
+    "translationsSaved": "IT用語数",
     "recentActivity": "最近のアクティビティ",
     "quickActions": "クイックアクション"
   },
@@ -34,12 +34,15 @@
     "title": "プロジェクト",
     "newProject": "新規プロジェクト",
     "projectName": "プロジェクト名",
+    "description": "説明",
     "client": "クライアント",
     "status": "ステータス",
     "dueDate": "期限",
     "members": "メンバー",
+    "confirmDelete": "このプロジェクトを削除してもよろしいですか？",
     "statusOptions": {
       "active": "進行中",
+      "archived": "アーカイブ済み",
       "onHold": "保留中",
       "completed": "完了",
       "planning": "計画中"
@@ -53,6 +56,14 @@
     "priority": "優先度",
     "dueDate": "期限",
     "description": "説明",
+    "selectProject": "プロジェクトを選択...",
+    "unassigned": "未割り当て",
+    "clickToChangeStatus": "クリックしてステータスを変更",
+    "statusOptions": {
+      "ongoing": "進行中",
+      "completed": "完了",
+      "delayed": "遅延"
+    },
     "priorityOptions": {
       "high": "高",
       "medium": "中",
@@ -87,6 +98,7 @@
   "glossary": {
     "title": "IT用語集",
     "searchTerms": "用語を検索...",
+    "addTerm": "用語を追加",
     "term": "用語",
     "english": "英語",
     "vietnamese": "ベトナム語",

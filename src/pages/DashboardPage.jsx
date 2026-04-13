@@ -1,33 +1,37 @@
 import { useTranslation } from 'react-i18next'
+import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/hooks/useAuth'
 import {
   FolderKanban,
   ListChecks,
   FileText,
-  Languages,
+  BookOpen,
   ArrowUpRight,
   Clock,
   Plus,
+  Loader2,
 } from 'lucide-react'
 import { Card, Button } from '@/components/ui'
-
-const stats = [
-  { key: 'activeProjects', icon: FolderKanban, value: 4, color: 'text-primary', bg: 'bg-primary/10' },
-  { key: 'pendingTasks', icon: ListChecks, value: 12, color: 'text-accent', bg: 'bg-accent/10' },
-  { key: 'reportsThisWeek', icon: FileText, value: 3, color: 'text-warning', bg: 'bg-warning/10' },
-  { key: 'translationsSaved', icon: Languages, value: 87, color: 'text-success', bg: 'bg-success/10' },
-]
-
-const recentActivity = [
-  { action: 'Updated task "API Integration" in Project Sakura', time: '2 min ago', type: 'task' },
-  { action: 'Submitted Hourenso report for Sprint 4', time: '1 hour ago', type: 'report' },
-  { action: 'Added 5 new terms to IT Glossary', time: '3 hours ago', type: 'glossary' },
-  { action: 'Created project "Payment Gateway"', time: '1 day ago', type: 'project' },
-]
+import { getDashboardStats } from '@/api/stats'
 
 export default function DashboardPage() {
   const { t } = useTranslation()
   const { user } = useAuth()
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['dashboardStats'],
+    queryFn: getDashboardStats,
+    refetchInterval: 30000, // Refresh every 30s
+  })
+
+  const statsConfig = [
+    { key: 'activeProjects', icon: FolderKanban, value: data?.activeProjects ?? '—', color: 'text-primary', bg: 'bg-primary/10' },
+    { key: 'pendingTasks',   icon: ListChecks,   value: data?.pendingTasks ?? '—',   color: 'text-accent',  bg: 'bg-accent/10' },
+    { key: 'reportsThisWeek', icon: FileText,    value: data?.reportsThisWeek ?? '—', color: 'text-warning', bg: 'bg-warning/10' },
+    { key: 'translationsSaved', icon: BookOpen,  value: data?.glossaryTerms ?? '—',  color: 'text-success', bg: 'bg-success/10' },
+  ]
+
+  const recentReports = data?.recentReports || []
 
   return (
     <div className="space-y-8 max-w-7xl">
@@ -41,12 +45,18 @@ export default function DashboardPage() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat) => (
+        {statsConfig.map((stat) => (
           <Card key={stat.key} hover className="group">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm text-text-secondary">{t(`dashboard.${stat.key}`)}</p>
-                <p className="text-3xl font-bold text-text-primary mt-2">{stat.value}</p>
+                <p className="text-3xl font-bold text-text-primary mt-2">
+                  {isLoading ? (
+                    <Loader2 size={24} className="animate-spin text-text-muted" />
+                  ) : (
+                    stat.value
+                  )}
+                </p>
               </div>
               <div className={`p-2.5 rounded-xl ${stat.bg}`}>
                 <stat.icon size={22} className={stat.color} />
@@ -65,17 +75,35 @@ export default function DashboardPage() {
         <Card className="lg:col-span-2" padding="none">
           <div className="flex items-center justify-between p-6 pb-4">
             <h2 className="font-semibold text-text-primary">{t('dashboard.recentActivity')}</h2>
-            <Button variant="ghost" size="sm">View all</Button>
           </div>
           <div className="divide-y divide-border">
-            {recentActivity.map((item, i) => (
-              <div key={i} className="flex items-start gap-3 px-6 py-4 hover:bg-surface-alt/50 transition-colors">
+            {isLoading && (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 size={24} className="animate-spin text-text-muted" />
+              </div>
+            )}
+            {!isLoading && recentReports.length === 0 && (
+              <div className="px-6 py-12 text-center text-text-muted text-sm">
+                {t('common.noData')}
+              </div>
+            )}
+            {recentReports.map((report) => (
+              <div key={report._id} className="flex items-start gap-3 px-6 py-4 hover:bg-surface-alt/50 transition-colors">
                 <div className="mt-1 w-2 h-2 rounded-full bg-accent flex-shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-text-primary">{item.action}</p>
+                  <p className="text-sm text-text-primary">
+                    <span className="font-medium">{report.authorId?.name || 'Someone'}</span>
+                    {' submitted a report'}
+                    {report.projectId?.name && (
+                      <> for <span className="font-medium text-primary">{report.projectId.name}</span></>
+                    )}
+                  </p>
+                  <p className="text-xs text-text-muted mt-0.5 line-clamp-1">
+                    {report.houkoku?.currentStatus}
+                  </p>
                   <div className="flex items-center gap-1 mt-1 text-xs text-text-muted">
                     <Clock size={11} />
-                    <span>{item.time}</span>
+                    <span>{new Date(report.createdAt).toLocaleString()}</span>
                   </div>
                 </div>
               </div>
