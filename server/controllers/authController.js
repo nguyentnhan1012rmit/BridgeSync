@@ -20,12 +20,15 @@ async function registerUser(req, res) {
         })
 
         if (user) {
+            const token = generateToken(user._id, user.role);
             res.status(201).json({
-                _id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                token: generateToken(user._id, user.role),
+                token,
+                user: {
+                    _id: user._id,
+                    name: user.name,
+                    email: user.email,
+                    role: user.role,
+                }
             })
         } else {
             res.status(400).json({ message: 'Invalid user data' })
@@ -50,11 +53,14 @@ async function loginUser(req, res) {
             await user.save();
 
             res.json({
-                _id: user._id,
-                name: user.name,
-                role: user.role,
                 token: accessToken,
-                refreshToken: refreshToken
+                refreshToken: refreshToken,
+                user: {
+                    _id: user._id,
+                    name: user.name,
+                    email: user.email,
+                    role: user.role,
+                }
             })
         } else {
             res.status(401).json({ message: 'Invalid email or password' })

@@ -25,7 +25,7 @@ const addGlossaryTerm = async (req, res) => {
             translations: translations,
             addedBy: req.user._id
         })
-        const savedTerm = newTerm.save();
+        const savedTerm = await newTerm.save();
         res.status(201).json(savedTerm)
     } catch (error) {
         res.status(500).json({ message: error.message })

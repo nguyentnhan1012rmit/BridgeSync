@@ -49,14 +49,14 @@ const deleteProject = async (req, res) => {
 const getOneProject = async (req, res) => {
     try {
         const id = req.params.projectId;
-        const project = await Project.findOne(id);
+        const project = await Project.findById(id);
 
         if (project == null) {
             return res.status(404).json({ message: 'Cannot find project' })
         }
         res.json(project)
     } catch (error) {
-
+        res.status(500).json({ message: error.message })
     }
 }
 
@@ -64,7 +64,7 @@ const getOneProject = async (req, res) => {
 // @route   GET /api/projects/:projectId/members
 const getProjectMembers = async (req, res) => {
     try {
-        const project = await Project.findById(req.params.id).populate('members', 'name email role');
+        const project = await Project.findById(req.params.projectId).populate('members', 'name email role');
 
         if (!project) {
             return res.status(404).json({ message: 'Project not found' });

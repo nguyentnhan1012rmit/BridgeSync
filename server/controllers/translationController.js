@@ -28,7 +28,7 @@ const translateText = async (req, res) => {
 
         // 2. Fallback to External API (Example using DeepL Free API)
 
-        const response = await axios.post(process.env.DEEPL_API_KEY, null, {
+        const response = await axios.post(process.env.DEEPL_API_URL, null, {
             params: {
                 auth_key: process.env.DEEPL_API_KEY,
                 text: text,

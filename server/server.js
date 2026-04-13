@@ -1,6 +1,8 @@
+require('dotenv').config();
 const express = require('express');
 const app = express();
 const mongoose = require('mongoose');
+const cors = require('cors');
 const { protect, authorize } = require('./middleware/authMiddleware')
 
 const authRoutes = require('./routes/authRoutes')
@@ -9,8 +11,6 @@ const taskRoutes = require('./routes/taskRoutes')
 const glossaryRoutes = require('./routes/glossaryRoutes')
 const translationRoutes = require('./routes/translationRoutes')
 const hourensoRoutes = require('./routes/hourensoRoutes');
-require('dotenv').config();
-const cors = require('cors');
 const corsOptions = {
     origin: ["http://localhost:5173"]
 }
