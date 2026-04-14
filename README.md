@@ -8,13 +8,21 @@ This project was built as part of the ISYS2101 - Software Engineering Project Ma
 
 ## 🚀 MVP Setup
 
-The MVP is built with a modern React tech stack:
-*   **Frontend:** React (v19) + Vite
+The MVP is built with a modern Full-Stack MERN tech stack:
+
+**Frontend:**
+*   **Core:** React (v19) + Vite
 *   **Styling:** Tailwind CSS (v4)
 *   **State & Caching:** React Query + LocalStorage
 *   **Internationalization (i18n):** react-i18next (EN/VI/JP)
 *   **Icons:** Lucide React
 *   **Excel Export:** SheetJS (xlsx)
+
+**Backend:**
+*   **Server:** Node.js + Express
+*   **Database:** MongoDB + Mongoose
+*   **Authentication:** JSON Web Tokens (JWT) & bcrypt
+*   **External APIs:** DeepL API integration for dynamic translation fallback
 
 ## 📦 Installation & Usage
 
@@ -37,21 +45,13 @@ For a detailed breakdown of the core features (Bilingual Dual-View, Smart Hover-
 
 ## 🧭 What to do next (Next Steps)
 
-The frontend MVP scaffold is complete. To turn this into a fully functional application, consider the following next steps:
+The frontend MVP and backend REST API foundations are established. To turn this into a fully operational application, consider the following next steps:
 
-1.  **Backend Integration & Database:**
-    *   Initialize a Node.js/Express backend (or Firebase/Supabase).
-    *   Design the MongoDB/PostgreSQL schema for Users, Projects, Tasks, and Hourenso Reports.
-    *   Replace the mock data in the React components with real API calls using React Query.
-2.  **Authentication & Roles (RBAC):**
-    *   Implement user authentication (e.g., using JWT or a service like Clerk/Auth0).
-    *   Create roles for BrSEs, Vietnamese Developers, and Japanese Stakeholders to control data visibility and edit permissions.
-3.  **Real Translation API Connection:**
-    *   Currently, the "Hover-to-Translate" feature uses a local, mocked IT Glossary.
-    *   Integrate DeepL Pro or Google Cloud Translation APIs.
-    *   Implement an API route on the backend to handle the translation requests securely (keeping API keys hidden from the frontend).
-4.  **Hourenso CRUD Capabilities:**
-    *   Build the forms to create, edit, and delete Hourenso reports, moving beyond the current static display.
-    *   Implement form validation to ensure all required Houkoku/Renraku/Soudan fields are completed.
-5.  **Expand IT Glossary Features:**
-    *   Allow BrSEs to add, edit, and delete terms from the shared glossary to train the custom dictionary over time.
+1.  **Connect Frontend to Backend API:**
+    *   Currently, the React frontend uses `React Query` but might still rely on local mocked data. Replace the mock data with actual `axios` or `fetch` calls to the existing Express endpoints (e.g., `/api/projects`, `/api/tasks`, `/api/auth`).
+    *   Implement user authentication flow on the frontend using the new JWT-based API routes.
+2.  **Hourenso CRUD Capabilities:**
+    *   The `HourensoReports` MongoDB model is ready, but the controllers and routes (`hourensoRoutes.js`) need to be built on the backend.
+    *   Build the frontend forms to create, edit, and delete Hourenso reports, moving beyond the current static display.
+3.  **Expand IT Glossary Features:**
+    *   Use the existing `/api/glossary` endpoints to allow BrSEs to add, edit, and delete terms from the shared glossary directly from the application UI.
