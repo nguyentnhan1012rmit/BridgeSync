@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Link } from 'react-router-dom';
+import { LogIn, Mail, Lock, AlertCircle } from 'lucide-react';
 
 export default function LoginPage() {
   const { login, isLoggingIn, loginError } = useAuth();
@@ -24,62 +25,89 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="bg-slate-50 min-h-screen pt-20 px-4">
-      <div className="mx-auto bg-white rounded-lg shadow-sm border border-slate-200 p-8" style={{ maxWidth: '400px', width: '100%' }}>
+    <div className="auth-bg flex items-center justify-center px-4 py-12">
+      <div className="auth-card w-full max-w-[420px] p-8 sm:p-10">
         
+        {/* Brand Header */}
         <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold text-slate-900">BridgeSync</h2>
-          <p className="text-sm text-slate-500 mt-2">Sign in to your account</p>
+          <div className="mx-auto w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center mb-4 shadow-lg">
+            <span className="text-white font-bold text-xl">B</span>
+          </div>
+          <h2 className="text-2xl font-bold text-text-primary tracking-tight">Welcome back</h2>
+          <p className="text-sm text-text-muted mt-1.5">Sign in to your BridgeSync account</p>
         </div>
 
+        {/* Error Banner */}
         {loginError && (
-          <div className="bg-red-50 text-red-600 border border-red-200 p-3 rounded-md text-sm mb-6">
-            {loginError.message || 'Login failed. Please try again.'}
+          <div className="flex items-center gap-2.5 bg-danger/8 text-danger border border-danger/15 p-3.5 rounded-xl text-sm mb-6 animate-[slideUp_200ms_ease]">
+            <AlertCircle size={16} className="flex-shrink-0" />
+            <span>{loginError.message || 'Login failed. Please try again.'}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Email Field */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
-            <input
-              name="email"
-              type="email"
-              required
-              value={formData.email}
-              onChange={handleChange}
-              className="px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-900"
-              style={{ width: '100%' }}
-              placeholder="you@example.com"
-            />
+            <label className="block text-sm font-medium text-text-secondary mb-1.5">Email</label>
+            <div className="relative">
+              <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+              <input
+                name="email"
+                type="email"
+                required
+                value={formData.email}
+                onChange={handleChange}
+                className="form-input pl-10"
+                placeholder="you@example.com"
+              />
+            </div>
           </div>
 
+          {/* Password Field */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
-            <input
-              name="password"
-              type="password"
-              required
-              value={formData.password}
-              onChange={handleChange}
-              className="px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-900"
-              style={{ width: '100%' }}
-              placeholder="********"
-            />
+            <label className="block text-sm font-medium text-text-secondary mb-1.5">Password</label>
+            <div className="relative">
+              <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+              <input
+                name="password"
+                type="password"
+                required
+                value={formData.password}
+                onChange={handleChange}
+                className="form-input pl-10"
+                placeholder="••••••••"
+              />
+            </div>
           </div>
 
+          {/* Submit */}
           <button
             type="submit"
             disabled={isLoggingIn}
-            className="bg-slate-900 text-white font-medium py-2.5 px-4 rounded-md hover:bg-slate-800 disabled:opacity-50 mt-2"
-            style={{ width: '100%' }}
+            className="w-full inline-flex items-center justify-center gap-2 bg-primary text-white font-medium
+              py-2.5 px-4 rounded-xl hover:bg-primary-light active:bg-primary-dark
+              disabled:opacity-50 disabled:cursor-not-allowed
+              transition-all duration-[var(--duration-fast)] ease-[var(--ease-smooth)]
+              shadow-sm hover:shadow-md cursor-pointer mt-1"
           >
-            {isLoggingIn ? 'Signing in...' : 'Sign in'}
+            {isLoggingIn ? (
+              <>
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Signing in...
+              </>
+            ) : (
+              <>
+                <LogIn size={16} />
+                Sign in
+              </>
+            )}
           </button>
         </form>
 
-        <div className="mt-8 text-center text-sm border-t border-slate-100 pt-6">
-          <span className="text-slate-600">Don't have an account? </span>
-          <Link to="/signup" className="text-slate-900 hover:text-slate-700 font-semibold underline">
+        {/* Footer Link */}
+        <div className="mt-8 text-center text-sm border-t border-border pt-6">
+          <span className="text-text-muted">Don't have an account? </span>
+          <Link to="/signup" className="text-primary hover:text-primary-light font-semibold transition-colors">
             Sign up
           </Link>
         </div>

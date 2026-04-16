@@ -15,9 +15,10 @@ export default function Card({
   return (
     <div
       className={`
-        bg-surface-raised rounded-xl border border-border shadow-sm
+        bg-surface-raised rounded-2xl border border-border
+        shadow-sm
         ${paddings[padding]}
-        ${hover ? 'hover:shadow-md hover:border-border-hover transition-all duration-[var(--duration-normal)] ease-[var(--ease-smooth)] cursor-pointer' : ''}
+        ${hover ? 'stat-card hover:border-border-hover cursor-pointer' : ''}
         ${className}
       `}
       {...props}

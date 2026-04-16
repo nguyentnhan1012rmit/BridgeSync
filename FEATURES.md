@@ -163,3 +163,36 @@ BridgeSync contains core MVP features specifically designed to bridge the gap be
 
 ---
 
+## 8. Premium UI/UX Design System
+
+**The Problem:** Default Tailwind utility classes produce generic-looking interfaces that lack visual hierarchy, depth, and polish. A project management tool used by cross-cultural teams needs to feel professional and intuitive regardless of the user's technical background.
+
+**The Solution:** A comprehensive, custom design system built on Tailwind CSS v4's `@theme` directive, providing semantic design tokens, reusable utility classes, and micro-animations for a premium user experience.
+
+*   **Implementation:** Centralized in `src/index.css` with `@theme` design tokens and custom utility classes consumed by all components.
+*   **Mechanics:**
+    *   **Color Palette:** Built on the **oklch** color space for perceptually consistent, vibrant colors. Semantic naming: `--color-primary` (sapphire blue), `--color-accent` (teal), `--color-warning` (amber), `--color-danger` (rose), `--color-success` (emerald). Four surface tiers (`surface`, `surface-raised`, `surface-alt`, `surface-overlay`) and three text tones for proper visual layering.
+    *   **Typography:** Primary font **Inter** (Google Fonts) with **Noto Sans JP** for Japanese character rendering. Tight letter-spacing on headings for a premium feel.
+    *   **Glassmorphism:** Auth pages (Login/Signup) use frosted glass cards (`backdrop-filter: blur(20px)`) over radial gradient backgrounds. The topbar uses `backdrop-filter: blur(12px)` for depth.
+    *   **Micro-Animations:**
+        *   Page transitions: `slideUp` + `fadeIn` on route changes.
+        *   Button press: `active:scale-[0.97]` for tactile feedback.
+        *   Card hover: Lift by 2px with shadow intensification.
+        *   Modal entrance: Bounce easing (`cubic-bezier(0.34, 1.56, 0.64, 1)`).
+        *   Status badge click: `hover:scale-105` + `active:scale-95` for interactive cycling.
+        *   Skeleton shimmer loaders while data fetches.
+    *   **Component Refinements:**
+        *   `Card`: `rounded-2xl`, hover lift with border color change.
+        *   `Button`: Four variants (primary, secondary, accent, danger) + ghost. Active press effect and hover shadows.
+        *   `Modal`: Body scroll lock, Escape key close, bounce entrance, subtle header tint.
+        *   `LanguageToggle`: iOS-style segmented control with flag emojis (🇺🇸 🇻🇳 🇯🇵).
+        *   `.form-input`: Consistent input styling with focus ring animation.
+        *   `.data-table`: Uppercase headers, hover rows, rounded containers.
+        *   `.empty-state`: Centered icon + muted text for zero-data scenarios.
+    *   **Layout:**
+        *   **Sidebar:** Collapsible with smooth CSS transition, active nav indicator bar, user avatar footer.
+        *   **Topbar:** Glassmorphic with language toggle and logout separated by visual divider.
+        *   **Responsive:** Mobile drawer sidebar on small screens, full sidebar on `lg:` breakpoint.
+        *   **Gradient backgrounds:** Subtle surface-to-transparent gradient on main content area.
+
+---

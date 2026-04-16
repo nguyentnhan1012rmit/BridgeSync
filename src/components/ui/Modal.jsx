@@ -21,6 +21,16 @@ export default function Modal({ open, onClose, title, children, maxWidth = 'max-
     return () => window.removeEventListener('keydown', handler)
   }, [open, onClose])
 
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden'
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [open])
+
   if (!open) return null
 
   const resolvedWidth = widthMap[maxWidth] || '32rem'
@@ -29,19 +39,20 @@ export default function Modal({ open, onClose, title, children, maxWidth = 'max-
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-[fadeIn_150ms_ease]"
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onClick={onClose}
+        style={{ animation: 'fadeIn 150ms ease' }}
       />
 
       {/* Panel */}
       <div
         className="relative w-full bg-surface-raised rounded-2xl border border-border
-          shadow-xl animate-[slideUp_200ms_ease] overflow-hidden"
-        style={{ maxWidth: resolvedWidth }}
+          shadow-xl overflow-hidden"
+        style={{ maxWidth: resolvedWidth, animation: 'slideUp 250ms cubic-bezier(0.34, 1.56, 0.64, 1)' }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-          <h2 className="text-lg font-semibold text-text-primary">{title}</h2>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-surface-alt/30">
+          <h2 className="text-lg font-semibold text-text-primary tracking-tight">{title}</h2>
           <button
             onClick={onClose}
             className="p-1.5 rounded-lg hover:bg-surface-alt transition-colors cursor-pointer text-text-muted hover:text-text-primary"

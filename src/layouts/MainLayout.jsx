@@ -38,13 +38,15 @@ export default function MainLayout() {
         <div
           className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm lg:hidden"
           onClick={() => setMobileOpen(false)}
+          style={{ animation: 'fadeIn 150ms ease' }}
         />
       )}
 
       {/* Sidebar */}
       <aside
         className={`
-          fixed inset-y-0 left-0 z-50 flex flex-col bg-surface-raised border-r border-border
+          fixed inset-y-0 left-0 z-50 flex flex-col
+          bg-surface-raised border-r border-border
           transition-all duration-[var(--duration-normal)] ease-[var(--ease-smooth)]
           lg:static lg:translate-x-0
           ${sidebarOpen ? 'w-64' : 'w-[72px]'}
@@ -52,20 +54,20 @@ export default function MainLayout() {
         `}
       >
         {/* Logo */}
-        <div className="flex items-center justify-between h-16 px-4 border-b border-border">
+        <div className="flex items-center justify-between h-16 px-4 border-b border-border flex-shrink-0">
           <div className="flex items-center gap-3 overflow-hidden">
-            <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
+            <div className="flex-shrink-0 w-9 h-9 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center shadow-sm">
               <span className="text-white font-bold text-sm">B</span>
             </div>
             {sidebarOpen && (
-              <span className="font-semibold text-lg text-text-primary whitespace-nowrap">
+              <span className="font-semibold text-lg text-text-primary whitespace-nowrap tracking-tight">
                 BridgeSync
               </span>
             )}
           </div>
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="hidden lg:flex items-center justify-center w-7 h-7 rounded-md hover:bg-surface-alt transition-colors cursor-pointer text-text-muted"
+            className="hidden lg:flex items-center justify-center w-7 h-7 rounded-lg hover:bg-surface-alt transition-colors cursor-pointer text-text-muted"
           >
             <ChevronLeft
               size={16}
@@ -74,7 +76,7 @@ export default function MainLayout() {
           </button>
           <button
             onClick={() => setMobileOpen(false)}
-            className="lg:hidden p-1 hover:bg-surface-alt rounded-md cursor-pointer text-text-muted"
+            className="lg:hidden p-1 hover:bg-surface-alt rounded-lg cursor-pointer text-text-muted"
           >
             <X size={18} />
           </button>
@@ -86,14 +88,15 @@ export default function MainLayout() {
             <NavLink
               key={item.key}
               to={item.path}
+              end={item.path === '/'}
               onClick={() => setMobileOpen(false)}
               className={({ isActive }) => `
-                flex items-center gap-3 px-3 py-2.5 rounded-lg
+                flex items-center gap-3 px-3 py-2.5 rounded-xl
                 transition-all duration-[var(--duration-fast)] ease-[var(--ease-smooth)]
-                group relative
+                group relative no-underline
                 ${
                   isActive
-                    ? 'bg-primary/10 text-primary font-medium'
+                    ? 'bg-primary/8 text-primary font-medium shadow-sm'
                     : 'text-text-secondary hover:bg-surface-alt hover:text-text-primary'
                 }
               `}
@@ -114,49 +117,52 @@ export default function MainLayout() {
         </nav>
 
         {/* Sidebar footer */}
-        {sidebarOpen && (
-          <div className="p-4 border-t border-border">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent to-primary flex items-center justify-center text-white text-xs font-bold uppercase">
-                {user?.name?.charAt(0) || 'BS'}
-              </div>
+        <div className={`border-t border-border flex-shrink-0 ${sidebarOpen ? 'p-4' : 'p-3'}`}>
+          <div className={`flex items-center ${sidebarOpen ? 'gap-3' : 'justify-center'}`}>
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-accent to-primary flex items-center justify-center text-white text-xs font-bold uppercase flex-shrink-0 shadow-sm">
+              {user?.name?.charAt(0) || 'BS'}
+            </div>
+            {sidebarOpen && (
               <div className="overflow-hidden flex-1">
                 <p className="text-sm font-medium text-text-primary truncate">{user?.name || 'Guest User'}</p>
                 <p className="text-xs text-text-muted truncate">{user?.email || 'guest@bridgesync.com'}</p>
               </div>
-            </div>
+            )}
           </div>
-        )}
+        </div>
       </aside>
 
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Topbar */}
-        <header className="flex items-center justify-between h-16 px-4 lg:px-8 bg-surface-raised border-b border-border">
+        <header className="topbar flex items-center justify-between h-16 px-4 lg:px-8 flex-shrink-0">
           <button
             onClick={() => setMobileOpen(true)}
-            className="lg:hidden p-2 hover:bg-surface-alt rounded-lg cursor-pointer text-text-secondary"
+            className="lg:hidden p-2 hover:bg-surface-alt rounded-lg cursor-pointer text-text-secondary transition-colors"
           >
             <Menu size={20} />
           </button>
 
           <div className="hidden lg:block" />
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <LanguageToggle />
+            <div className="w-px h-6 bg-border" />
             <button
                onClick={logout}
                title="Log Out"
-               className="p-2 text-danger hover:bg-danger/10 hover:text-danger rounded-lg transition-colors cursor-pointer"
+               className="p-2 text-text-muted hover:text-danger hover:bg-danger/8 rounded-lg transition-all duration-[var(--duration-fast)] cursor-pointer"
             >
-              <LogOut size={20} />
+              <LogOut size={18} />
             </button>
           </div>
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto p-4 lg:p-8">
-          <Outlet />
+        <main className="flex-1 overflow-y-auto p-4 lg:p-8 bg-gradient-surface">
+          <div className="page-enter">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

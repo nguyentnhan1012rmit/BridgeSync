@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, Info, Loader2, AlertCircle, ChevronDown } from 'lucide-react'
+import { Plus, Info, Loader2, AlertCircle, ChevronDown, ListChecks } from 'lucide-react'
 import { Card, Button, Modal, TranslateTooltip } from '@/components/ui'
 import { useAuth } from '@/hooks/useAuth'
 import { getTasksByProject, createTask, updateTaskStatus } from '@/api/tasks'
@@ -9,9 +9,9 @@ import { getProjects } from '@/api/projects'
 import { getProjectMembers } from '@/api/projects'
 
 const statusConfig = {
-  ongoing:   { color: 'bg-info/15 text-info',       dot: 'bg-info',    label: 'Ongoing' },
-  completed: { color: 'bg-success/15 text-success',  dot: 'bg-success', label: 'Completed' },
-  delayed:   { color: 'bg-danger/15 text-danger',    dot: 'bg-danger',  label: 'Delayed' },
+  ongoing:   { color: 'bg-info/10 text-info border border-info/20',         dot: 'bg-info',    label: 'Ongoing' },
+  completed: { color: 'bg-success/10 text-success border border-success/20', dot: 'bg-success', label: 'Completed' },
+  delayed:   { color: 'bg-danger/10 text-danger border border-danger/20',   dot: 'bg-danger',  label: 'Delayed' },
 }
 
 const statusCycle = ['ongoing', 'completed', 'delayed']
@@ -80,11 +80,11 @@ export default function TasksPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-7xl">
+    <div className="space-y-6" style={{ maxWidth: '80rem' }}>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-text-primary">{t('tasks.title')}</h1>
+          <h1 className="text-2xl font-bold text-text-primary tracking-tight">{t('tasks.title')}</h1>
           <p className="text-text-secondary text-sm mt-1">
             {selectedProject
               ? `${tasks.length} ${t('tasks.title').toLowerCase()}`
@@ -104,9 +104,7 @@ export default function TasksPage() {
           <select
             value={selectedProject}
             onChange={(e) => setSelectedProject(e.target.value)}
-            className="w-full appearance-none pl-4 pr-10 py-2.5 text-sm bg-surface-raised border border-border rounded-lg
-              focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary
-              text-text-primary transition-all cursor-pointer"
+            className="form-input appearance-none pr-10 cursor-pointer"
           >
             <option value="">{t('tasks.selectProject')}</option>
             {projects.map((p) => (
@@ -119,7 +117,7 @@ export default function TasksPage() {
 
       {/* Hover-to-translate hint */}
       {selectedProject && (
-        <div className="flex items-center gap-2 px-4 py-3 bg-accent/5 border border-accent/20 rounded-xl text-sm text-accent-dark">
+        <div className="flex items-center gap-2.5 px-4 py-3 bg-accent/5 border border-accent/15 rounded-2xl text-sm text-accent-dark">
           <Info size={16} className="flex-shrink-0" />
           <span>{t('tasks.hoverToTranslate')}</span>
         </div>
@@ -127,7 +125,7 @@ export default function TasksPage() {
 
       {/* Error state */}
       {isError && (
-        <div className="flex items-center gap-2 p-4 bg-danger/10 border border-danger/20 rounded-xl text-sm text-danger">
+        <div className="flex items-center gap-2.5 p-4 bg-danger/8 border border-danger/15 rounded-2xl text-sm text-danger">
           <AlertCircle size={16} />
           <span>{error?.message || 'Failed to load tasks'}</span>
         </div>
@@ -142,8 +140,9 @@ export default function TasksPage() {
 
       {/* Empty state */}
       {selectedProject && !isLoading && !isError && tasks.length === 0 && (
-        <Card className="text-center py-12">
-          <p className="text-text-muted">{t('common.noData')}</p>
+        <Card className="empty-state py-16">
+          <ListChecks size={36} />
+          <p className="text-sm">{t('common.noData')}</p>
         </Card>
       )}
 
@@ -154,9 +153,9 @@ export default function TasksPage() {
             {tasks.map((task) => {
               const cfg = statusConfig[task.status] || statusConfig.ongoing
               return (
-                <div key={task._id} className="flex items-center gap-4 px-6 py-4 hover:bg-surface-alt/50 transition-colors group">
+                <div key={task._id} className="flex items-center gap-4 px-6 py-4 hover:bg-primary/3 transition-colors group">
                   {/* Status dot */}
-                  <div className={`w-2.5 h-2.5 rounded-full ${cfg.dot} flex-shrink-0`} />
+                  <div className={`w-2.5 h-2.5 rounded-full ${cfg.dot} flex-shrink-0 ring-4 ring-current/8`} />
 
                   {/* Task info */}
                   <div className="flex-1 min-w-0">
@@ -175,7 +174,7 @@ export default function TasksPage() {
                   <button
                     onClick={() => cycleStatus(task)}
                     disabled={updateStatusMutation.isPending}
-                    className={`text-xs font-medium px-2.5 py-1 rounded-full cursor-pointer transition-all hover:opacity-80 ${cfg.color}`}
+                    className={`text-xs font-medium px-2.5 py-1 rounded-full cursor-pointer transition-all hover:scale-105 active:scale-95 ${cfg.color}`}
                     title={t('tasks.clickToChangeStatus')}
                   >
                     {t(`tasks.statusOptions.${task.status}`) || task.status}
@@ -205,9 +204,7 @@ export default function TasksPage() {
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
               placeholder={t('tasks.taskName')}
-              className="w-full px-4 py-2.5 text-sm bg-surface-alt border border-border rounded-lg
-                focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary
-                placeholder:text-text-muted transition-all"
+              className="form-input"
             />
           </div>
 
@@ -220,9 +217,7 @@ export default function TasksPage() {
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               placeholder={t('tasks.description')}
-              className="w-full px-4 py-2.5 text-sm bg-surface-alt border border-border rounded-lg
-                focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary
-                placeholder:text-text-muted transition-all resize-none"
+              className="form-input resize-none"
             />
           </div>
 
@@ -234,9 +229,7 @@ export default function TasksPage() {
               <select
                 value={form.assigneeId}
                 onChange={(e) => setForm({ ...form, assigneeId: e.target.value })}
-                className="w-full appearance-none pl-4 pr-10 py-2.5 text-sm bg-surface-alt border border-border rounded-lg
-                  focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary
-                  text-text-primary transition-all cursor-pointer"
+                className="form-input appearance-none pr-10 cursor-pointer"
               >
                 <option value="">{t('tasks.unassigned')}</option>
                 {members.map((m) => (

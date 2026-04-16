@@ -1,14 +1,14 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, Users, Calendar, Trash2, Loader2, AlertCircle } from 'lucide-react'
+import { Plus, Users, Calendar, Trash2, Loader2, AlertCircle, FolderKanban } from 'lucide-react'
 import { Card, Button, Modal } from '@/components/ui'
 import { useAuth } from '@/hooks/useAuth'
 import { getProjects, createProject, deleteProject } from '@/api/projects'
 
 const statusColors = {
-  active: 'bg-success/15 text-success',
-  archived: 'bg-text-muted/15 text-text-muted',
+  active: 'bg-success/10 text-success border border-success/20',
+  archived: 'bg-text-muted/10 text-text-muted border border-text-muted/15',
 }
 
 export default function ProjectsPage() {
@@ -55,11 +55,11 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-7xl">
+    <div className="space-y-6" style={{ maxWidth: '80rem' }}>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-text-primary">{t('projects.title')}</h1>
+          <h1 className="text-2xl font-bold text-text-primary tracking-tight">{t('projects.title')}</h1>
           <p className="text-text-secondary text-sm mt-1">
             {isLoading ? t('common.loading') : `${projects.length} ${t('projects.title').toLowerCase()} total`}
           </p>
@@ -73,7 +73,7 @@ export default function ProjectsPage() {
 
       {/* Error state */}
       {isError && (
-        <div className="flex items-center gap-2 p-4 bg-danger/10 border border-danger/20 rounded-xl text-sm text-danger">
+        <div className="flex items-center gap-2.5 p-4 bg-danger/8 border border-danger/15 rounded-2xl text-sm text-danger">
           <AlertCircle size={16} />
           <span>{error?.message || 'Failed to load projects'}</span>
         </div>
@@ -88,8 +88,9 @@ export default function ProjectsPage() {
 
       {/* Empty state */}
       {!isLoading && !isError && projects.length === 0 && (
-        <Card className="text-center py-12">
-          <p className="text-text-muted">{t('common.noData')}</p>
+        <Card className="empty-state py-16">
+          <FolderKanban size={36} />
+          <p className="text-sm">{t('common.noData')}</p>
         </Card>
       )}
 
@@ -99,9 +100,9 @@ export default function ProjectsPage() {
           <Card key={project._id} hover>
             <div className="flex items-start justify-between mb-3">
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-text-primary">{project.name}</h3>
+                <h3 className="font-semibold text-text-primary tracking-tight">{project.name}</h3>
                 {project.description && (
-                  <p className="text-sm text-text-secondary mt-0.5 line-clamp-2">{project.description}</p>
+                  <p className="text-sm text-text-secondary mt-1 line-clamp-2">{project.description}</p>
                 )}
               </div>
               <div className="flex items-center gap-2 flex-shrink-0 ml-3">
@@ -112,7 +113,7 @@ export default function ProjectsPage() {
                   <button
                     onClick={(e) => { e.stopPropagation(); handleDelete(project._id) }}
                     disabled={deleteMutation.isPending}
-                    className="p-1.5 rounded-lg text-text-muted hover:text-danger hover:bg-danger/10 transition-colors cursor-pointer disabled:opacity-50"
+                    className="p-1.5 rounded-lg text-text-muted hover:text-danger hover:bg-danger/8 transition-colors cursor-pointer disabled:opacity-50"
                     title={t('common.delete')}
                   >
                     <Trash2 size={14} />
@@ -121,7 +122,7 @@ export default function ProjectsPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-xs text-text-muted">
+            <div className="flex items-center justify-between text-xs text-text-muted pt-3 border-t border-border">
               <div className="flex items-center gap-1.5">
                 <Users size={13} />
                 <span>{project.members?.length || 0} {t('projects.members').toLowerCase()}</span>
@@ -148,9 +149,7 @@ export default function ProjectsPage() {
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               placeholder={t('projects.projectName')}
-              className="w-full px-4 py-2.5 text-sm bg-surface-alt border border-border rounded-lg
-                focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary
-                placeholder:text-text-muted transition-all"
+              className="form-input"
             />
           </div>
 
@@ -163,9 +162,7 @@ export default function ProjectsPage() {
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               placeholder={t('projects.description')}
-              className="w-full px-4 py-2.5 text-sm bg-surface-alt border border-border rounded-lg
-                focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary
-                placeholder:text-text-muted transition-all resize-none"
+              className="form-input resize-none"
             />
           </div>
 

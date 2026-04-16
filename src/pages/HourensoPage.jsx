@@ -1,29 +1,43 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, Download, ChevronDown, ChevronUp, Calendar, User, Loader2, AlertCircle } from 'lucide-react'
+import { Plus, Download, ChevronDown, ChevronUp, Calendar, User, Loader2, AlertCircle, FileText } from 'lucide-react'
 import { Card, Button, Modal } from '@/components/ui'
 import { useAuth } from '@/hooks/useAuth'
 import { getProjectReports, createReport } from '@/api/hourenso'
 import { getProjects } from '@/api/projects'
 import * as XLSX from 'xlsx'
 
-function HourensoSection({ title, icon: Icon, children, defaultOpen = true }) {
+function HourensoSection({ title, icon: Icon, children, defaultOpen = true, accentColor = 'primary' }) {
   const [open, setOpen] = useState(defaultOpen)
 
+  const colorMap = {
+    primary: 'text-primary',
+    accent: 'text-accent-dark',
+    warning: 'text-warning',
+  }
+
   return (
-    <div className="border border-border rounded-lg overflow-hidden">
+    <div className="border border-border rounded-xl overflow-hidden">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-4 py-3 bg-surface-alt/50 hover:bg-surface-alt cursor-pointer transition-colors"
+        className="w-full flex items-center justify-between px-4 py-3.5 bg-surface-alt/40 hover:bg-surface-alt cursor-pointer transition-colors"
       >
-        <div className="flex items-center gap-2">
-          {Icon && <Icon size={16} className="text-primary" />}
+        <div className="flex items-center gap-2.5">
+          {Icon && <Icon size={16} className={colorMap[accentColor] || 'text-primary'} />}
           <span className="font-medium text-sm text-text-primary">{title}</span>
         </div>
-        {open ? <ChevronUp size={16} className="text-text-muted" /> : <ChevronDown size={16} className="text-text-muted" />}
+        <div className={`transition-transform duration-200 ${open ? 'rotate-0' : 'rotate-180'}`}>
+          <ChevronUp size={16} className="text-text-muted" />
+        </div>
       </button>
-      {open && <div className="px-4 py-3 space-y-2 text-sm">{children}</div>}
+      <div
+        className={`overflow-hidden transition-all duration-300 ease-[var(--ease-smooth)] ${
+          open ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
+        }`}
+      >
+        <div className="px-4 py-3.5 space-y-3 text-sm">{children}</div>
+      </div>
     </div>
   )
 }
@@ -31,7 +45,7 @@ function HourensoSection({ title, icon: Icon, children, defaultOpen = true }) {
 function FieldRow({ label, value }) {
   return (
     <div>
-      <span className="text-text-muted text-xs uppercase tracking-wider">{label}</span>
+      <span className="text-text-muted text-xs uppercase tracking-wider font-medium">{label}</span>
       <p className="text-text-primary mt-0.5">{value || '—'}</p>
     </div>
   )
@@ -135,11 +149,11 @@ export default function HourensoPage() {
   const canCreateReport = user?.role === 'Developer' || user?.role === 'BrSE' || user?.role === 'PM'
 
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div className="space-y-6" style={{ maxWidth: '64rem' }}>
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-text-primary">{t('hourenso.title')}</h1>
+          <h1 className="text-2xl font-bold text-text-primary tracking-tight">{t('hourenso.title')}</h1>
           <p className="text-text-secondary text-sm mt-1">{t('hourenso.subtitle')}</p>
         </div>
         <div className="flex items-center gap-3">
@@ -157,13 +171,11 @@ export default function HourensoPage() {
       </div>
 
       {/* Project selector */}
-      <div className="relative min-w-[240px] max-w-sm">
+      <div className="relative min-w-[240px]" style={{ maxWidth: '24rem' }}>
         <select
           value={selectedProject}
           onChange={(e) => setSelectedProject(e.target.value)}
-          className="w-full appearance-none pl-4 pr-10 py-2.5 text-sm bg-surface-raised border border-border rounded-lg
-            focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary
-            text-text-primary transition-all cursor-pointer"
+          className="form-input appearance-none pr-10 cursor-pointer"
         >
           <option value="">{t('tasks.selectProject')}</option>
           {projects.map((p) => (
@@ -175,7 +187,7 @@ export default function HourensoPage() {
 
       {/* Error state */}
       {isError && (
-        <div className="flex items-center gap-2 p-4 bg-danger/10 border border-danger/20 rounded-xl text-sm text-danger">
+        <div className="flex items-center gap-2.5 p-4 bg-danger/8 border border-danger/15 rounded-2xl text-sm text-danger">
           <AlertCircle size={16} />
           <span>{error?.message || 'Failed to load reports'}</span>
         </div>
@@ -190,15 +202,16 @@ export default function HourensoPage() {
 
       {/* Empty state */}
       {selectedProject && !isLoading && !isError && reports.length === 0 && (
-        <Card className="text-center py-12">
-          <p className="text-text-muted">{t('common.noData')}</p>
+        <Card className="empty-state py-16">
+          <FileText size={36} />
+          <p className="text-sm">{t('common.noData')}</p>
         </Card>
       )}
 
       {/* Reports */}
-      <div className="space-y-6">
+      <div className="space-y-5">
         {reports.map((report) => (
-          <Card key={report._id} className="space-y-4">
+          <Card key={report._id} className="space-y-4 report-card">
             {/* Report header */}
             <div className="flex items-center gap-4 text-sm text-text-secondary pb-3 border-b border-border">
               <div className="flex items-center gap-1.5">
@@ -210,14 +223,14 @@ export default function HourensoPage() {
                 <span>{report.authorId?.name || '—'}</span>
               </div>
               {report.authorId?.role && (
-                <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
+                <span className="text-xs bg-primary/8 text-primary px-2.5 py-0.5 rounded-full font-medium border border-primary/15">
                   {report.authorId.role}
                 </span>
               )}
             </div>
 
             {/* Houkoku */}
-            <HourensoSection title={t('hourenso.sections.houkoku')}>
+            <HourensoSection title={t('hourenso.sections.houkoku')} accentColor="primary">
               <FieldRow label={t('hourenso.fields.currentStatus')} value={report.houkoku?.currentStatus} />
               <FieldRow label={t('hourenso.fields.progress')} value={report.houkoku?.progress} />
               <FieldRow label={t('hourenso.fields.issues')} value={report.houkoku?.issues} />
@@ -225,12 +238,12 @@ export default function HourensoPage() {
             </HourensoSection>
 
             {/* Renraku */}
-            <HourensoSection title={t('hourenso.sections.renraku')} defaultOpen={false}>
+            <HourensoSection title={t('hourenso.sections.renraku')} defaultOpen={false} accentColor="accent">
               <FieldRow label={t('hourenso.fields.sharedInfo')} value={report.renraku?.sharedInformation} />
             </HourensoSection>
 
             {/* Soudan */}
-            <HourensoSection title={t('hourenso.sections.soudan')} defaultOpen={false}>
+            <HourensoSection title={t('hourenso.sections.soudan')} defaultOpen={false} accentColor="warning">
               <FieldRow label={t('hourenso.fields.consultTopic')} value={report.soudan?.topic} />
               <FieldRow label={t('hourenso.fields.options')} value={report.soudan?.proposedOptions?.join(', ')} />
               <FieldRow
@@ -247,7 +260,10 @@ export default function HourensoPage() {
         <form onSubmit={handleCreate} className="space-y-6">
           {/* Houkoku section */}
           <div>
-            <h3 className="text-sm font-semibold text-primary mb-3">{t('hourenso.sections.houkoku')}</h3>
+            <h3 className="text-sm font-semibold text-primary mb-3 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+              {t('hourenso.sections.houkoku')}
+            </h3>
             <div className="space-y-3">
               <div>
                 <label className="block text-xs font-medium text-text-secondary mb-1">
@@ -257,9 +273,7 @@ export default function HourensoPage() {
                   required rows={2}
                   value={form.currentStatus}
                   onChange={(e) => setForm({ ...form, currentStatus: e.target.value })}
-                  className="w-full px-4 py-2 text-sm bg-surface-alt border border-border rounded-lg
-                    focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary
-                    placeholder:text-text-muted transition-all resize-none"
+                  className="form-input resize-none"
                 />
               </div>
               <div>
@@ -270,9 +284,7 @@ export default function HourensoPage() {
                   required rows={2}
                   value={form.progress}
                   onChange={(e) => setForm({ ...form, progress: e.target.value })}
-                  className="w-full px-4 py-2 text-sm bg-surface-alt border border-border rounded-lg
-                    focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary
-                    placeholder:text-text-muted transition-all resize-none"
+                  className="form-input resize-none"
                 />
               </div>
               <div>
@@ -283,9 +295,7 @@ export default function HourensoPage() {
                   rows={2}
                   value={form.issues}
                   onChange={(e) => setForm({ ...form, issues: e.target.value })}
-                  className="w-full px-4 py-2 text-sm bg-surface-alt border border-border rounded-lg
-                    focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary
-                    placeholder:text-text-muted transition-all resize-none"
+                  className="form-input resize-none"
                 />
               </div>
               <div>
@@ -296,9 +306,7 @@ export default function HourensoPage() {
                   required rows={2}
                   value={form.nextSteps}
                   onChange={(e) => setForm({ ...form, nextSteps: e.target.value })}
-                  className="w-full px-4 py-2 text-sm bg-surface-alt border border-border rounded-lg
-                    focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary
-                    placeholder:text-text-muted transition-all resize-none"
+                  className="form-input resize-none"
                 />
               </div>
             </div>
@@ -306,7 +314,10 @@ export default function HourensoPage() {
 
           {/* Renraku section */}
           <div>
-            <h3 className="text-sm font-semibold text-accent-dark mb-3">{t('hourenso.sections.renraku')}</h3>
+            <h3 className="text-sm font-semibold text-accent-dark mb-3 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent" />
+              {t('hourenso.sections.renraku')}
+            </h3>
             <div>
               <label className="block text-xs font-medium text-text-secondary mb-1">
                 {t('hourenso.fields.sharedInfo')}
@@ -315,16 +326,17 @@ export default function HourensoPage() {
                 rows={2}
                 value={form.sharedInformation}
                 onChange={(e) => setForm({ ...form, sharedInformation: e.target.value })}
-                className="w-full px-4 py-2 text-sm bg-surface-alt border border-border rounded-lg
-                  focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary
-                  placeholder:text-text-muted transition-all resize-none"
+                className="form-input resize-none"
               />
             </div>
           </div>
 
           {/* Soudan section */}
           <div>
-            <h3 className="text-sm font-semibold text-warning mb-3">{t('hourenso.sections.soudan')}</h3>
+            <h3 className="text-sm font-semibold text-warning mb-3 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-warning" />
+              {t('hourenso.sections.soudan')}
+            </h3>
             <div className="space-y-3">
               <div>
                 <label className="block text-xs font-medium text-text-secondary mb-1">
@@ -334,9 +346,7 @@ export default function HourensoPage() {
                   type="text"
                   value={form.topic}
                   onChange={(e) => setForm({ ...form, topic: e.target.value })}
-                  className="w-full px-4 py-2 text-sm bg-surface-alt border border-border rounded-lg
-                    focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary
-                    placeholder:text-text-muted transition-all"
+                  className="form-input"
                 />
               </div>
               <div>
@@ -349,9 +359,7 @@ export default function HourensoPage() {
                   value={form.proposedOptions}
                   onChange={(e) => setForm({ ...form, proposedOptions: e.target.value })}
                   placeholder="Option A, Option B, Option C"
-                  className="w-full px-4 py-2 text-sm bg-surface-alt border border-border rounded-lg
-                    focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary
-                    placeholder:text-text-muted transition-all"
+                  className="form-input"
                 />
               </div>
               <div>
@@ -362,9 +370,7 @@ export default function HourensoPage() {
                   type="date"
                   value={form.deadline}
                   onChange={(e) => setForm({ ...form, deadline: e.target.value })}
-                  className="w-full px-4 py-2 text-sm bg-surface-alt border border-border rounded-lg
-                    focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary
-                    text-text-primary transition-all"
+                  className="form-input"
                 />
               </div>
             </div>

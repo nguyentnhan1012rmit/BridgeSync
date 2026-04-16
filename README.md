@@ -14,7 +14,7 @@ The MVP is built with a modern Full-Stack **MERN** stack:
 
 **Frontend:**
 *   **Core:** React (v19) + Vite (v8)
-*   **Styling:** Tailwind CSS (v4) with custom design system (oklch color palette)
+*   **Styling:** Tailwind CSS (v4) with custom design system (oklch color palette, glassmorphism, micro-animations)
 *   **State & Caching:** TanStack React Query (v5) + React Context (Auth)
 *   **Internationalization (i18n):** react-i18next (EN / VI / JA)
 *   **Icons:** Lucide React
@@ -230,6 +230,26 @@ You can register new accounts via the Signup page (`/signup`). Choose from the f
 ## 📖 Features Overview
 
 For a detailed breakdown of all features, please see the [FEATURES.md](./FEATURES.md) file.
+
+---
+
+## 🎨 UI/UX Design System
+
+BridgeSync features a premium, modern design system built on top of Tailwind CSS v4:
+
+| Design Element | Details |
+|---|---|
+| **Color Palette** | Semantic oklch-based colors (primary sapphire, teal accent, amber warning, semantic surfaces) |
+| **Typography** | Inter + Noto Sans JP via Google Fonts, tight letter-spacing on headings |
+| **Glassmorphism** | Frosted-glass topbar and auth cards with `backdrop-filter: blur` |
+| **Micro-Animations** | Button press (`scale-[0.97]`), card hover lift (`translateY(-2px)`), modal bounce entrance, page slide-in, skeleton shimmer loaders |
+| **Auth Pages** | Glassmorphic card on radial gradient background with icon-prefixed inputs |
+| **Sidebar** | Collapsible with active indicator bar, user avatar footer, smooth transitions |
+| **Data Tables** | Uppercase headers, hover-highlighted rows, rounded containers |
+| **Status Badges** | Color-coded bordered badges with click-to-cycle interaction |
+| **Language Toggle** | iOS-style segmented control with flag emojis |
+| **Empty States** | Contextual icons with muted labels for zero-data scenarios |
+| **Focus States** | Visible ring outlines on all interactive elements for accessibility |
 
 ---
 
