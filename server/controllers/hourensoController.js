@@ -34,7 +34,7 @@ const createReport = async (req, res) => {
 // @route   GET /api/hourenso/:projectId
 const getProjectReports = async (req, res) => {
     try {
-        const reports = await HourensoReports.find({ projectId: req.params.projectId }).populate('authorId', 'name role').sort({ created: '-1' })
+        const reports = await HourensoReports.find({ projectId: req.params.projectId }).populate('authorId', 'name role').sort({ createdAt: -1 })
         res.json(reports)
     } catch (error) {
         res.status(500).json({ message: error.message })

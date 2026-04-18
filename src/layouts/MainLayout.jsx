@@ -10,7 +10,6 @@ import {
   Settings,
   Menu,
   X,
-  ChevronLeft,
   LogOut,
 } from 'lucide-react'
 import LanguageToggle from '@/components/LanguageToggle'
@@ -28,15 +27,14 @@ const navItems = [
 export default function MainLayout() {
   const { t } = useTranslation()
   const { user, logout } = useAuth()
-  const [sidebarOpen, setSidebarOpen] = useState(true)
   const [mobileOpen, setMobileOpen] = useState(false)
 
   return (
-    <div className="flex h-screen overflow-hidden bg-surface">
+    <div className="flex h-screen bg-surface overflow-hidden">
       {/* Mobile overlay */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-black/20 lg:hidden"
           onClick={() => setMobileOpen(false)}
         />
       )}
@@ -44,37 +42,23 @@ export default function MainLayout() {
       {/* Sidebar */}
       <aside
         className={`
-          fixed inset-y-0 left-0 z-50 flex flex-col bg-surface-raised border-r border-border
-          transition-all duration-[var(--duration-normal)] ease-[var(--ease-smooth)]
+          fixed inset-y-0 left-0 z-50 flex flex-col w-64 bg-surface-raised border-r border-border
+          transition-transform duration-300 ease-in-out
           lg:static lg:translate-x-0
-          ${sidebarOpen ? 'w-64' : 'w-[72px]'}
-          ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
       >
-        {/* Logo */}
-        <div className="flex items-center justify-between h-16 px-4 border-b border-border">
-          <div className="flex items-center gap-3 overflow-hidden">
-            <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">B</span>
-            </div>
-            {sidebarOpen && (
-              <span className="font-semibold text-lg text-text-primary whitespace-nowrap">
-                BridgeSync
-              </span>
-            )}
+        {/* Logo area */}
+        <div className="flex items-center gap-3 px-6 h-16 border-b border-border shrink-0">
+          <div className="flex items-center justify-center w-8 h-8 rounded bg-primary text-white font-bold">
+            B
           </div>
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="hidden lg:flex items-center justify-center w-7 h-7 rounded-md hover:bg-surface-alt transition-colors cursor-pointer text-text-muted"
-          >
-            <ChevronLeft
-              size={16}
-              className={`transition-transform duration-[var(--duration-normal)] ${!sidebarOpen ? 'rotate-180' : ''}`}
-            />
-          </button>
+          <span className="font-semibold text-text-primary tracking-tight">
+            BridgeSync
+          </span>
           <button
             onClick={() => setMobileOpen(false)}
-            className="lg:hidden p-1 hover:bg-surface-alt rounded-md cursor-pointer text-text-muted"
+            className="ml-auto p-1 lg:hidden text-text-muted hover:bg-surface-alt rounded"
           >
             <X size={18} />
           </button>
@@ -86,77 +70,70 @@ export default function MainLayout() {
             <NavLink
               key={item.key}
               to={item.path}
+              end={item.path === '/'}
               onClick={() => setMobileOpen(false)}
               className={({ isActive }) => `
-                flex items-center gap-3 px-3 py-2.5 rounded-lg
-                transition-all duration-[var(--duration-fast)] ease-[var(--ease-smooth)]
-                group relative
-                ${
-                  isActive
-                    ? 'bg-primary/10 text-primary font-medium'
-                    : 'text-text-secondary hover:bg-surface-alt hover:text-text-primary'
+                flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
+                ${isActive
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-text-secondary hover:bg-surface-alt hover:text-text-primary'
                 }
               `}
             >
-              {({ isActive }) => (
-                <>
-                  {isActive && (
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full" />
-                  )}
-                  <item.icon size={20} className="flex-shrink-0" />
-                  {sidebarOpen && (
-                    <span className="text-sm whitespace-nowrap">{t(`nav.${item.key}`)}</span>
-                  )}
-                </>
-              )}
+              <item.icon size={18} strokeWidth={2} />
+              {t(`nav.${item.key}`)}
             </NavLink>
           ))}
         </nav>
 
-        {/* Sidebar footer */}
-        {sidebarOpen && (
-          <div className="p-4 border-t border-border">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent to-primary flex items-center justify-center text-white text-xs font-bold uppercase">
-                {user?.name?.charAt(0) || 'BS'}
-              </div>
-              <div className="overflow-hidden flex-1">
-                <p className="text-sm font-medium text-text-primary truncate">{user?.name || 'Guest User'}</p>
-                <p className="text-xs text-text-muted truncate">{user?.email || 'guest@bridgesync.com'}</p>
-              </div>
+        {/* User Profile */}
+        <div className="p-4 border-t border-border shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-9 h-9 rounded-full bg-primary/10 text-primary font-bold text-sm shrink-0">
+              {user?.name?.charAt(0) || 'U'}
             </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-text-primary truncate">
+                {user?.name || 'Guest'}
+              </p>
+              <p className="text-xs text-text-muted truncate">
+                {user?.role || 'User'}
+              </p>
+            </div>
+            <button
+              onClick={logout}
+              title="Log Out"
+              className="p-2 text-text-muted hover:bg-danger/10 hover:text-danger rounded-lg transition-colors cursor-pointer"
+            >
+              <LogOut size={16} />
+            </button>
           </div>
-        )}
+        </div>
       </aside>
 
-      {/* Main content */}
-      <div className="flex-1 flex flex-col min-w-0">
+      {/* Main content wrapper */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Topbar */}
-        <header className="flex items-center justify-between h-16 px-4 lg:px-8 bg-surface-raised border-b border-border">
+        <header className="flex items-center justify-between px-4 lg:px-8 h-16 bg-surface-raised border-b border-border shrink-0">
           <button
             onClick={() => setMobileOpen(true)}
-            className="lg:hidden p-2 hover:bg-surface-alt rounded-lg cursor-pointer text-text-secondary"
+            className="p-2 lg:hidden text-text-secondary hover:bg-surface-alt rounded-lg"
           >
             <Menu size={20} />
           </button>
-
+          
           <div className="hidden lg:block" />
 
           <div className="flex items-center gap-4">
             <LanguageToggle />
-            <button
-               onClick={logout}
-               title="Log Out"
-               className="p-2 text-danger hover:bg-danger/10 hover:text-danger rounded-lg transition-colors cursor-pointer"
-            >
-              <LogOut size={20} />
-            </button>
           </div>
         </header>
 
-        {/* Page content */}
-        <main className="flex-1 overflow-y-auto p-4 lg:p-8">
-          <Outlet />
+        {/* Page content scrollable area */}
+        <main className="flex-1 overflow-auto p-4 lg:p-8">
+          <div className="max-w-[76rem] mx-auto page-enter">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

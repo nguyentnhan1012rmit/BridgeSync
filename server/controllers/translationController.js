@@ -28,15 +28,34 @@ const translateText = async (req, res) => {
 
         // 2. Fallback to External API (Example using DeepL Free API)
 
-        const response = await axios.post(process.env.DEEPL_URL, {
-            text: [text],
-            target_lang: targetLang.toUpperCase()
-        }, {
-            headers: {
-                'Authorization': `DeepL-Auth-Key ${process.env.DEEPL_API_KEY}`,
-                'Content-Type': 'application/json'
-            }
-        });
+        const deeplApiEndpoint = process.env.DEEPL_API_URL || process.env.DEEPL_URL;
+        const useLegacyDeeplRequest = Boolean(process.env.DEEPL_API_URL);
+        if (!deeplApiEndpoint) {
+            return res.status(500).json({
+                message: 'DeepL API endpoint is not configured. Please set either DEEPL_API_URL or DEEPL_URL.'
+            });
+        }
+
+        let response;
+        if (useLegacyDeeplRequest) {
+            response = await axios.post(deeplApiEndpoint, null, {
+                params: {
+                    auth_key: process.env.DEEPL_API_KEY,
+                    text,
+                    target_lang: targetLang.toUpperCase()
+                }
+            });
+        } else {
+            response = await axios.post(deeplApiEndpoint, {
+                text: [text],
+                target_lang: targetLang.toUpperCase()
+            }, {
+                headers: {
+                    'Authorization': `DeepL-Auth-Key ${process.env.DEEPL_API_KEY}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+        }
 
         res.json({
             originalText: text,

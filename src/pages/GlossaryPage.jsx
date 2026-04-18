@@ -1,124 +1,212 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Search } from 'lucide-react'
-import { Card } from '@/components/ui'
-
-const glossaryData = [
-  { term: 'API', en: 'Application Programming Interface', vi: 'Giao diện lập trình ứng dụng', ja: 'アプリケーション・プログラミング・インターフェース', category: 'Architecture' },
-  { term: 'CI/CD', en: 'Continuous Integration / Continuous Deployment', vi: 'Tích hợp liên tục / Triển khai liên tục', ja: '継続的インテグレーション / 継続的デプロイメント', category: 'DevOps' },
-  { term: 'Sprint', en: 'Fixed time-box for development iteration', vi: 'Chu kỳ phát triển cố định (thường 2 tuần)', ja: 'スプリント — 開発の反復期間', category: 'Agile' },
-  { term: 'Backlog', en: 'Prioritized list of pending work', vi: 'Danh sách công việc chờ xử lý theo ưu tiên', ja: 'バックログ — 優先順位付きの保留タスクリスト', category: 'Agile' },
-  { term: 'Pull Request', en: 'Code review request before merging', vi: 'Yêu cầu xem xét mã trước khi hợp nhất', ja: 'プルリクエスト — マージ前のコードレビュー依頼', category: 'Git' },
-  { term: 'Staging', en: 'Pre-production test environment', vi: 'Môi trường kiểm thử trước sản xuất', ja: 'ステージング — 本番前のテスト環境', category: 'DevOps' },
-  { term: 'Hotfix', en: 'Emergency production bug fix', vi: 'Sửa lỗi khẩn cấp trên production', ja: 'ホットフィックス — 本番環境の緊急バグ修正', category: 'DevOps' },
-  { term: 'Refactoring', en: 'Restructuring code without changing behavior', vi: 'Tái cấu trúc mã không thay đổi hành vi', ja: 'リファクタリング — 動作を変えずにコードを再構築', category: 'Engineering' },
-  { term: 'Middleware', en: 'Software layer between OS and application', vi: 'Phần mềm trung gian giữa hệ điều hành và ứng dụng', ja: 'ミドルウェア — OSとアプリの間のソフトウェア層', category: 'Architecture' },
-  { term: 'Schema', en: 'Database structure definition', vi: 'Định nghĩa cấu trúc cơ sở dữ liệu', ja: 'スキーマ — データベース構造の定義', category: 'Database' },
-]
-
-const categories = [...new Set(glossaryData.map((g) => g.category))]
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { Search, Plus, Loader2, AlertCircle, BookOpen } from 'lucide-react'
+import { Card, Button, Modal } from '@/components/ui'
+import { useAuth } from '@/hooks/useAuth'
+import { getGlossary, addGlossaryTerm } from '@/api/glossary'
 
 export default function GlossaryPage() {
   const { t } = useTranslation()
+  const { user } = useAuth()
+  const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState('all')
+  const [showAdd, setShowAdd] = useState(false)
+  const [form, setForm] = useState({ baseTerm: '', en: '', vi: '', ja: '' })
+
+  // ── Fetch glossary ──
+  const { data: glossaryData = [], isLoading, isError, error } = useQuery({
+    queryKey: ['glossary'],
+    queryFn: getGlossary,
+  })
+
+  // ── Add term ──
+  const addMutation = useMutation({
+    mutationFn: addGlossaryTerm,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['glossary'] })
+      setShowAdd(false)
+      setForm({ baseTerm: '', en: '', vi: '', ja: '' })
+    },
+  })
+
+  const handleAdd = (e) => {
+    e.preventDefault()
+    if (!form.baseTerm.trim()) return
+    addMutation.mutate({
+      baseTerm: form.baseTerm,
+      translations: { en: form.en, vi: form.vi, ja: form.ja },
+    })
+  }
 
   const filtered = glossaryData.filter((item) => {
-    const matchSearch =
-      item.term.toLowerCase().includes(search.toLowerCase()) ||
-      item.en.toLowerCase().includes(search.toLowerCase()) ||
-      item.vi.toLowerCase().includes(search.toLowerCase()) ||
-      item.ja.includes(search)
-
-    const matchCategory = selectedCategory === 'all' || item.category === selectedCategory
-
-    return matchSearch && matchCategory
+    if (!search) return true
+    const q = search.toLowerCase()
+    return (
+      item.baseTerm?.toLowerCase().includes(q) ||
+      item.translations?.en?.toLowerCase().includes(q) ||
+      item.translations?.vi?.toLowerCase().includes(q) ||
+      item.translations?.ja?.includes(search)
+    )
   })
 
   return (
-    <div className="space-y-6 max-w-7xl">
+    <div style={{ maxWidth: '76rem' }}>
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-text-primary">{t('glossary.title')}</h1>
-        <p className="text-text-secondary text-sm mt-1">
-          {glossaryData.length} IT terms with trilingual definitions
-        </p>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+        <div>
+          <h1 style={{ fontSize: '1.25rem', fontWeight: 600, letterSpacing: '-0.02em' }} className="text-text-primary">{t('glossary.title')}</h1>
+          <p style={{ fontSize: '0.875rem', marginTop: '2px' }} className="text-text-muted">
+            {isLoading ? t('common.loading') : `${glossaryData.length} trilingual terms`}
+          </p>
+        </div>
+        {user?.role === 'BrSE' && (
+          <Button icon={Plus} onClick={() => setShowAdd(true)}>
+            {t('glossary.addTerm')}
+          </Button>
+        )}
       </div>
 
-      {/* Search + filter */}
+      {/* Search */}
       <div className="flex items-center gap-3 flex-wrap">
-        <div className="relative flex-1 min-w-[240px]">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+        <div className="relative flex-1 min-w-[220px]" style={{ maxWidth: '24rem' }}>
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
           <input
             type="text"
             placeholder={t('glossary.searchTerms')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 text-sm bg-surface-raised border border-border rounded-lg
-              focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary
-              placeholder:text-text-muted transition-all"
+            className="form-input pl-8 text-sm"
           />
-        </div>
-
-        <div className="flex items-center gap-1.5">
-          <button
-            onClick={() => setSelectedCategory('all')}
-            className={`px-3 py-2 text-xs font-medium rounded-lg cursor-pointer transition-all
-              ${selectedCategory === 'all' ? 'bg-primary text-white' : 'bg-surface-alt text-text-secondary hover:text-text-primary'}`}
-          >
-            All
-          </button>
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-3 py-2 text-xs font-medium rounded-lg cursor-pointer transition-all
-                ${selectedCategory === cat ? 'bg-primary text-white' : 'bg-surface-alt text-text-secondary hover:text-text-primary'}`}
-            >
-              {cat}
-            </button>
-          ))}
         </div>
       </div>
 
-      {/* Table */}
-      <Card padding="none" className="overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-surface-alt/50 border-b border-border">
-                <th className="text-left px-6 py-3.5 font-medium text-text-secondary">{t('glossary.term')}</th>
-                <th className="text-left px-6 py-3.5 font-medium text-text-secondary">{t('glossary.english')}</th>
-                <th className="text-left px-6 py-3.5 font-medium text-text-secondary">{t('glossary.vietnamese')}</th>
-                <th className="text-left px-6 py-3.5 font-medium text-text-secondary">{t('glossary.japanese')}</th>
-                <th className="text-left px-6 py-3.5 font-medium text-text-secondary">{t('glossary.category')}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {filtered.map((item) => (
-                <tr key={item.term} className="hover:bg-surface-alt/30 transition-colors">
-                  <td className="px-6 py-3.5 font-semibold text-primary whitespace-nowrap">{item.term}</td>
-                  <td className="px-6 py-3.5 text-text-primary">{item.en}</td>
-                  <td className="px-6 py-3.5 text-text-primary">{item.vi}</td>
-                  <td className="px-6 py-3.5 text-text-primary">{item.ja}</td>
-                  <td className="px-6 py-3.5">
-                    <span className="text-xs bg-surface-alt text-text-secondary px-2 py-1 rounded-md font-medium">
-                      {item.category}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-              {filtered.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-text-muted">
-                    {t('common.noData')}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+      {/* Error state */}
+      {isError && (
+        <div className="flex items-center gap-2 p-3 bg-danger/5 border border-danger/10 rounded-lg text-sm text-danger">
+          <AlertCircle size={15} />
+          <span>{error?.message || 'Failed to load glossary'}</span>
         </div>
-      </Card>
+      )}
+
+      {/* Loading */}
+      {isLoading && (
+        <div className="flex items-center justify-center py-16">
+          <Loader2 size={22} className="animate-spin text-text-muted" />
+        </div>
+      )}
+
+      {/* Table */}
+      {!isLoading && (
+        <Card padding="none" className="overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>{t('glossary.term')}</th>
+                  <th>{t('glossary.english')}</th>
+                  <th>{t('glossary.vietnamese')}</th>
+                  <th>{t('glossary.japanese')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((item) => (
+                  <tr key={item._id}>
+                    <td className="font-medium text-primary whitespace-nowrap">{item.baseTerm}</td>
+                    <td className="text-text-primary">{item.translations?.en}</td>
+                    <td className="text-text-primary">{item.translations?.vi}</td>
+                    <td className="text-text-primary">{item.translations?.ja}</td>
+                  </tr>
+                ))}
+                {filtered.length === 0 && (
+                  <tr>
+                    <td colSpan={4}>
+                      <div className="empty-state py-10">
+                        <BookOpen size={24} />
+                        <p className="text-sm">{t('common.noData')}</p>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
+
+      {/* Add term modal */}
+      <Modal open={showAdd} onClose={() => setShowAdd(false)} title={t('glossary.addTerm')}>
+        <form onSubmit={handleAdd} className="space-y-3.5">
+          <div>
+            <label className="block text-sm font-medium text-text-secondary mb-1">
+              {t('glossary.term')} *
+            </label>
+            <input
+              type="text"
+              required
+              value={form.baseTerm}
+              onChange={(e) => setForm({ ...form, baseTerm: e.target.value })}
+              placeholder="e.g. Deployment"
+              className="form-input"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-text-secondary mb-1">
+              {t('glossary.english')} *
+            </label>
+            <input
+              type="text"
+              required
+              value={form.en}
+              onChange={(e) => setForm({ ...form, en: e.target.value })}
+              placeholder="English definition"
+              className="form-input"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-text-secondary mb-1">
+              {t('glossary.vietnamese')} *
+            </label>
+            <input
+              type="text"
+              required
+              value={form.vi}
+              onChange={(e) => setForm({ ...form, vi: e.target.value })}
+              placeholder="Định nghĩa tiếng Việt"
+              className="form-input"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-text-secondary mb-1">
+              {t('glossary.japanese')} *
+            </label>
+            <input
+              type="text"
+              required
+              value={form.ja}
+              onChange={(e) => setForm({ ...form, ja: e.target.value })}
+              placeholder="日本語の定義"
+              className="form-input"
+            />
+          </div>
+
+          {addMutation.isError && (
+            <p className="text-sm text-danger">{addMutation.error?.message}</p>
+          )}
+
+          <div className="flex items-center justify-end gap-2 pt-1">
+            <Button variant="ghost" type="button" onClick={() => setShowAdd(false)}>
+              {t('common.cancel')}
+            </Button>
+            <Button type="submit" disabled={addMutation.isPending}>
+              {addMutation.isPending ? t('common.loading') : t('common.create')}
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   )
 }

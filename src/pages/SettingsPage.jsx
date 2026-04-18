@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { Settings } from 'lucide-react'
+import { Globe, Monitor } from 'lucide-react'
 import { Card } from '@/components/ui'
 import LanguageToggle from '@/components/LanguageToggle'
 
@@ -7,21 +7,50 @@ export default function SettingsPage() {
   const { t } = useTranslation()
 
   return (
-    <div className="space-y-6 max-w-3xl">
-      <div>
-        <h1 className="text-2xl font-bold text-text-primary">{t('nav.settings')}</h1>
-        <p className="text-text-secondary text-sm mt-1">Configure your BridgeSync preferences</p>
+    <div style={{ maxWidth: '44rem' }}>
+      <div style={{ marginBottom: '20px' }}>
+        <h1 style={{ fontSize: '1.25rem', fontWeight: 600, letterSpacing: '-0.02em' }} className="text-text-primary">
+          {t('nav.settings')}
+        </h1>
+        <p style={{ fontSize: '0.875rem', marginTop: '2px' }} className="text-text-muted">
+          Configure your preferences
+        </p>
       </div>
 
-      <Card>
-        <div className="flex items-center gap-3 mb-4">
-          <Settings size={18} className="text-text-muted" />
-          <h2 className="font-semibold text-text-primary">{t('common.language')}</h2>
+      {/* Language Setting */}
+      <Card style={{ marginBottom: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+          <div style={{ padding: '8px', borderRadius: '8px', flexShrink: 0 }} className="bg-primary/8">
+            <Globe size={18} className="text-primary" />
+          </div>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <h2 style={{ fontSize: '0.9375rem', fontWeight: 500 }} className="text-text-primary">{t('common.language')}</h2>
+            <p style={{ fontSize: '0.8125rem', marginTop: '4px' }} className="text-text-muted">
+              Select your preferred interface language
+            </p>
+            <div style={{ marginTop: '12px' }}>
+              <LanguageToggle />
+            </div>
+          </div>
         </div>
-        <p className="text-sm text-text-secondary mb-4">
-          Select your preferred interface language. Changes take effect immediately without reloading.
-        </p>
-        <LanguageToggle />
+      </Card>
+
+      {/* Display Setting */}
+      <Card>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+          <div style={{ padding: '8px', borderRadius: '8px', flexShrink: 0 }} className="bg-accent/8">
+            <Monitor size={18} className="text-accent-dark" />
+          </div>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <h2 style={{ fontSize: '0.9375rem', fontWeight: 500 }} className="text-text-primary">Display</h2>
+            <p style={{ fontSize: '0.8125rem', marginTop: '4px' }} className="text-text-muted">
+              Interface density and visual preferences
+            </p>
+            <p style={{ fontSize: '0.8125rem', marginTop: '8px', fontStyle: 'italic' }} className="text-text-muted">
+              More settings coming soon.
+            </p>
+          </div>
+        </div>
       </Card>
     </div>
   )

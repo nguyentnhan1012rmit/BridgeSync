@@ -8,8 +8,8 @@ export default function Card({
   const paddings = {
     none: '',
     sm: 'p-4',
-    md: 'p-6',
-    lg: 'p-8',
+    md: 'p-5',
+    lg: 'p-7',
   }
 
   return (
@@ -17,7 +17,7 @@ export default function Card({
       className={`
         bg-surface-raised rounded-xl border border-border shadow-sm
         ${paddings[padding]}
-        ${hover ? 'hover:shadow-md hover:border-border-hover transition-all duration-[var(--duration-normal)] ease-[var(--ease-smooth)] cursor-pointer' : ''}
+        ${hover ? 'stat-card hover:border-border-hover cursor-pointer' : ''}
         ${className}
       `}
       {...props}

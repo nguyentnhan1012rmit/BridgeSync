@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Link } from 'react-router-dom';
+import { LogIn, Mail, Lock, AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui';
 
 export default function LoginPage() {
   const { login, isLoggingIn, loginError } = useAuth();
@@ -24,62 +26,94 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="bg-slate-50 min-h-screen pt-20 px-4">
-      <div className="mx-auto bg-white rounded-lg shadow-sm border border-slate-200 p-8" style={{ maxWidth: '400px', width: '100%' }}>
+    <div className="auth-bg flex items-center justify-center p-4 min-h-screen">
+      <div className="auth-card w-full max-w-[420px] p-8 sm:p-10 shadow-xl bg-surface-raised">
         
+        {/* Brand Header */}
         <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold text-slate-900">BridgeSync</h2>
-          <p className="text-sm text-slate-500 mt-2">Sign in to your account</p>
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-primary rounded-xl mb-4 shadow-sm">
+            <span className="text-white font-bold text-xl tracking-tighter">B</span>
+          </div>
+          <h2 className="text-2xl font-bold text-text-primary tracking-tight">
+            Welcome back
+          </h2>
+          <p className="text-sm text-text-muted mt-2">
+            Sign in to your BridgeSync account
+          </p>
         </div>
 
+        {/* Error Banner */}
         {loginError && (
-          <div className="bg-red-50 text-red-600 border border-red-200 p-3 rounded-md text-sm mb-6">
-            {loginError.message || 'Login failed. Please try again.'}
+          <div className="flex items-center gap-2 p-3 mb-6 rounded-lg bg-danger/10 border border-danger/20 text-danger text-sm font-medium">
+            <AlertCircle size={18} className="shrink-0" />
+            <span>{loginError.message || 'Login failed. Please try again.'}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Email Field */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
-            <input
-              name="email"
-              type="email"
-              required
-              value={formData.email}
-              onChange={handleChange}
-              className="px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-900"
-              style={{ width: '100%' }}
-              placeholder="you@example.com"
-            />
+            <label className="block text-sm font-medium text-text-secondary mb-1.5">
+              Email
+            </label>
+            <div className="relative">
+              <Mail size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+              <input
+                name="email"
+                type="email"
+                required
+                value={formData.email}
+                onChange={handleChange}
+                className="form-input w-full pl-10 py-2.5 text-sm"
+                placeholder="you@example.com"
+              />
+            </div>
           </div>
 
+          {/* Password Field */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
-            <input
-              name="password"
-              type="password"
-              required
-              value={formData.password}
-              onChange={handleChange}
-              className="px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-900"
-              style={{ width: '100%' }}
-              placeholder="********"
-            />
+            <label className="block text-sm font-medium text-text-secondary mb-1.5">
+              Password
+            </label>
+            <div className="relative">
+              <Lock size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+              <input
+                name="password"
+                type="password"
+                required
+                value={formData.password}
+                onChange={handleChange}
+                className="form-input w-full pl-10 py-2.5 text-sm"
+                placeholder="••••••••"
+              />
+            </div>
           </div>
 
-          <button
+          {/* Submit */}
+          <Button
             type="submit"
+            className="w-full mt-2"
+            size="lg"
             disabled={isLoggingIn}
-            className="bg-slate-900 text-white font-medium py-2.5 px-4 rounded-md hover:bg-slate-800 disabled:opacity-50 mt-2"
-            style={{ width: '100%' }}
           >
-            {isLoggingIn ? 'Signing in...' : 'Sign in'}
-          </button>
+            {isLoggingIn ? (
+              <>
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                Signing in...
+              </>
+            ) : (
+              <>
+                <LogIn size={18} className="mr-2" />
+                Sign in
+              </>
+            )}
+          </Button>
         </form>
 
-        <div className="mt-8 text-center text-sm border-t border-slate-100 pt-6">
-          <span className="text-slate-600">Don't have an account? </span>
-          <Link to="/signup" className="text-slate-900 hover:text-slate-700 font-semibold underline">
+        {/* Footer Link */}
+        <div className="mt-8 pt-6 border-t border-border text-center text-sm">
+          <span className="text-text-muted">Don't have an account? </span>
+          <Link to="/signup" className="text-primary hover:text-primary-light font-semibold transition-colors">
             Sign up
           </Link>
         </div>

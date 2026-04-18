@@ -26,7 +26,7 @@
     "activeProjects": "Dự án đang hoạt động",
     "pendingTasks": "Công việc chờ xử lý",
     "reportsThisWeek": "Báo cáo tuần này",
-    "translationsSaved": "Bản dịch đã lưu",
+    "translationsSaved": "Thuật ngữ IT",
     "recentActivity": "Hoạt động gần đây",
     "quickActions": "Thao tác nhanh"
   },
@@ -34,12 +34,15 @@
     "title": "Dự án",
     "newProject": "Dự án mới",
     "projectName": "Tên dự án",
+    "description": "Mô tả",
     "client": "Khách hàng",
     "status": "Trạng thái",
     "dueDate": "Ngày đến hạn",
     "members": "Thành viên",
+    "confirmDelete": "Bạn có chắc muốn xóa dự án này không?",
     "statusOptions": {
       "active": "Đang hoạt động",
+      "archived": "Đã lưu trữ",
       "onHold": "Tạm dừng",
       "completed": "Hoàn thành",
       "planning": "Lập kế hoạch"
@@ -53,6 +56,14 @@
     "priority": "Độ ưu tiên",
     "dueDate": "Ngày đến hạn",
     "description": "Mô tả",
+    "selectProject": "Chọn dự án...",
+    "unassigned": "Chưa phân công",
+    "clickToChangeStatus": "Nhấp để thay đổi trạng thái",
+    "statusOptions": {
+      "ongoing": "Đang tiến hành",
+      "completed": "Hoàn thành",
+      "delayed": "Trì hoãn"
+    },
     "priorityOptions": {
       "high": "Cao",
       "medium": "Trung bình",
@@ -87,6 +98,7 @@
   "glossary": {
     "title": "Từ điển IT",
     "searchTerms": "Tìm thuật ngữ...",
+    "addTerm": "Thêm thuật ngữ",
     "term": "Thuật ngữ",
     "english": "Tiếng Anh",
     "vietnamese": "Tiếng Việt",
