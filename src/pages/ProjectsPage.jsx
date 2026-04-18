@@ -7,8 +7,8 @@ import { useAuth } from '@/hooks/useAuth'
 import { getProjects, createProject, deleteProject } from '@/api/projects'
 
 const statusColors = {
-  active: 'bg-success/10 text-success border border-success/20',
-  archived: 'bg-text-muted/10 text-text-muted border border-text-muted/15',
+  active: { background: 'oklch(0.55 0.14 150 / 0.1)', color: 'oklch(0.45 0.14 150)' },
+  archived: { background: 'oklch(0.55 0.005 260 / 0.1)', color: 'oklch(0.45 0.005 260)' },
 }
 
 export default function ProjectsPage() {
@@ -18,13 +18,11 @@ export default function ProjectsPage() {
   const [showCreate, setShowCreate] = useState(false)
   const [form, setForm] = useState({ name: '', description: '' })
 
-  // ── Fetch projects ──
   const { data: projects = [], isLoading, isError, error } = useQuery({
     queryKey: ['projects'],
     queryFn: getProjects,
   })
 
-  // ── Create project ──
   const createMutation = useMutation({
     mutationFn: createProject,
     onSuccess: () => {
@@ -34,7 +32,6 @@ export default function ProjectsPage() {
     },
   })
 
-  // ── Delete project ──
   const deleteMutation = useMutation({
     mutationFn: deleteProject,
     onSuccess: () => {
@@ -55,13 +52,15 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className="space-y-6" style={{ maxWidth: '80rem' }}>
+    <div style={{ maxWidth: '76rem' }}>
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
         <div>
-          <h1 className="text-2xl font-bold text-text-primary tracking-tight">{t('projects.title')}</h1>
-          <p className="text-text-secondary text-sm mt-1">
-            {isLoading ? t('common.loading') : `${projects.length} ${t('projects.title').toLowerCase()} total`}
+          <h1 style={{ fontSize: '1.25rem', fontWeight: 600, letterSpacing: '-0.02em' }} className="text-text-primary">
+            {t('projects.title')}
+          </h1>
+          <p style={{ fontSize: '0.875rem', marginTop: '2px' }} className="text-text-muted">
+            {isLoading ? t('common.loading') : `${projects.length} ${t('projects.title').toLowerCase()}`}
           </p>
         </div>
         {(user?.role === 'PM' || user?.role === 'BrSE') && (
@@ -71,76 +70,91 @@ export default function ProjectsPage() {
         )}
       </div>
 
-      {/* Error state */}
+      {/* Error */}
       {isError && (
-        <div className="flex items-center gap-2.5 p-4 bg-danger/8 border border-danger/15 rounded-2xl text-sm text-danger">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px', borderRadius: '8px', fontSize: '0.875rem', marginBottom: '16px', background: 'oklch(0.52 0.16 25 / 0.06)', border: '1px solid oklch(0.52 0.16 25 / 0.12)', color: 'oklch(0.52 0.16 25)' }}>
           <AlertCircle size={16} />
           <span>{error?.message || 'Failed to load projects'}</span>
         </div>
       )}
 
-      {/* Loading state */}
+      {/* Loading */}
       {isLoading && (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 size={28} className="animate-spin text-primary" />
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '64px 0' }}>
+          <Loader2 size={24} className="animate-spin text-text-muted" />
         </div>
       )}
 
-      {/* Empty state */}
+      {/* Empty */}
       {!isLoading && !isError && projects.length === 0 && (
-        <Card className="empty-state py-16">
-          <FolderKanban size={36} />
-          <p className="text-sm">{t('common.noData')}</p>
+        <Card className="empty-state" style={{ padding: '56px 16px' }}>
+          <FolderKanban size={32} />
+          <p style={{ fontSize: '0.875rem' }}>{t('common.noData')}</p>
         </Card>
       )}
 
       {/* Project Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {projects.map((project) => (
-          <Card key={project._id} hover>
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-text-primary tracking-tight">{project.name}</h3>
-                {project.description && (
-                  <p className="text-sm text-text-secondary mt-1 line-clamp-2">{project.description}</p>
-                )}
+        {projects.map((project) => {
+          const sc = statusColors[project.status] || statusColors.active
+          return (
+            <Card key={project._id} hover>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <h3 style={{ fontWeight: 500, fontSize: '0.9375rem', letterSpacing: '-0.01em' }} className="text-text-primary">
+                    {project.name}
+                  </h3>
+                  {project.description && (
+                    <p style={{ fontSize: '0.8125rem', marginTop: '4px' }} className="text-text-muted line-clamp-2">
+                      {project.description}
+                    </p>
+                  )}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0, marginLeft: '12px' }}>
+                  <span style={{
+                    fontSize: '0.6875rem',
+                    fontWeight: 500,
+                    padding: '2px 8px',
+                    borderRadius: '9999px',
+                    background: sc.background,
+                    color: sc.color,
+                  }}>
+                    {t(`projects.statusOptions.${project.status}`) || project.status}
+                  </span>
+                  {user?.role === 'PM' && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleDelete(project._id) }}
+                      disabled={deleteMutation.isPending}
+                      style={{ padding: '4px', borderRadius: '6px', cursor: 'pointer', border: 'none', background: 'transparent', transition: 'all 150ms' }}
+                      className="text-text-muted hover:text-danger hover:bg-danger/8"
+                      title={t('common.delete')}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
+                </div>
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0 ml-3">
-                <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusColors[project.status] || statusColors.active}`}>
-                  {t(`projects.statusOptions.${project.status}`) || project.status}
-                </span>
-                {user?.role === 'PM' && (
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleDelete(project._id) }}
-                    disabled={deleteMutation.isPending}
-                    className="p-1.5 rounded-lg text-text-muted hover:text-danger hover:bg-danger/8 transition-colors cursor-pointer disabled:opacity-50"
-                    title={t('common.delete')}
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                )}
-              </div>
-            </div>
 
-            <div className="flex items-center justify-between text-xs text-text-muted pt-3 border-t border-border">
-              <div className="flex items-center gap-1.5">
-                <Users size={13} />
-                <span>{project.members?.length || 0} {t('projects.members').toLowerCase()}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', paddingTop: '10px', borderTop: '1px solid' }} className="text-text-muted border-border">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <Users size={13} />
+                  <span>{project.members?.length || 0} {t('projects.members').toLowerCase()}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <Calendar size={13} />
+                  <span>{new Date(project.createdAt).toLocaleDateString()}</span>
+                </div>
               </div>
-              <div className="flex items-center gap-1.5">
-                <Calendar size={13} />
-                <span>{new Date(project.createdAt).toLocaleDateString()}</span>
-              </div>
-            </div>
-          </Card>
-        ))}
+            </Card>
+          )
+        })}
       </div>
 
       {/* Create project modal */}
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title={t('projects.newProject')}>
-        <form onSubmit={handleCreate} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-text-secondary mb-1.5">
+        <form onSubmit={handleCreate}>
+          <div style={{ marginBottom: '14px' }}>
+            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }} className="text-text-secondary">
               {t('projects.projectName')} *
             </label>
             <input
@@ -153,8 +167,8 @@ export default function ProjectsPage() {
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-text-secondary mb-1.5">
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }} className="text-text-secondary">
               {t('projects.description')}
             </label>
             <textarea
@@ -162,16 +176,17 @@ export default function ProjectsPage() {
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               placeholder={t('projects.description')}
-              className="form-input resize-none"
+              className="form-input"
+              style={{ resize: 'none' }}
             />
           </div>
 
           {createMutation.isError && (
-            <p className="text-sm text-danger">{createMutation.error?.message}</p>
+            <p style={{ fontSize: '0.875rem', marginBottom: '12px' }} className="text-danger">{createMutation.error?.message}</p>
           )}
 
-          <div className="flex items-center justify-end gap-3 pt-2">
-            <Button variant="secondary" type="button" onClick={() => setShowCreate(false)}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', paddingTop: '4px' }}>
+            <Button variant="ghost" type="button" onClick={() => setShowCreate(false)}>
               {t('common.cancel')}
             </Button>
             <Button type="submit" disabled={createMutation.isPending}>

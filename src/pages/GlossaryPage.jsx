@@ -51,13 +51,13 @@ export default function GlossaryPage() {
   })
 
   return (
-    <div className="space-y-6" style={{ maxWidth: '80rem' }}>
+    <div style={{ maxWidth: '76rem' }}>
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
         <div>
-          <h1 className="text-2xl font-bold text-text-primary tracking-tight">{t('glossary.title')}</h1>
-          <p className="text-text-secondary text-sm mt-1">
-            {isLoading ? t('common.loading') : `${glossaryData.length} IT terms with trilingual definitions`}
+          <h1 style={{ fontSize: '1.25rem', fontWeight: 600, letterSpacing: '-0.02em' }} className="text-text-primary">{t('glossary.title')}</h1>
+          <p style={{ fontSize: '0.875rem', marginTop: '2px' }} className="text-text-muted">
+            {isLoading ? t('common.loading') : `${glossaryData.length} trilingual terms`}
           </p>
         </div>
         {user?.role === 'BrSE' && (
@@ -69,30 +69,30 @@ export default function GlossaryPage() {
 
       {/* Search */}
       <div className="flex items-center gap-3 flex-wrap">
-        <div className="relative flex-1 min-w-[240px]" style={{ maxWidth: '28rem' }}>
-          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
+        <div className="relative flex-1 min-w-[220px]" style={{ maxWidth: '24rem' }}>
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
           <input
             type="text"
             placeholder={t('glossary.searchTerms')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="form-input pl-10"
+            className="form-input pl-8 text-sm"
           />
         </div>
       </div>
 
       {/* Error state */}
       {isError && (
-        <div className="flex items-center gap-2.5 p-4 bg-danger/8 border border-danger/15 rounded-2xl text-sm text-danger">
-          <AlertCircle size={16} />
+        <div className="flex items-center gap-2 p-3 bg-danger/5 border border-danger/10 rounded-lg text-sm text-danger">
+          <AlertCircle size={15} />
           <span>{error?.message || 'Failed to load glossary'}</span>
         </div>
       )}
 
       {/* Loading */}
       {isLoading && (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 size={28} className="animate-spin text-primary" />
+        <div className="flex items-center justify-center py-16">
+          <Loader2 size={22} className="animate-spin text-text-muted" />
         </div>
       )}
 
@@ -112,7 +112,7 @@ export default function GlossaryPage() {
               <tbody>
                 {filtered.map((item) => (
                   <tr key={item._id}>
-                    <td className="font-semibold text-primary whitespace-nowrap">{item.baseTerm}</td>
+                    <td className="font-medium text-primary whitespace-nowrap">{item.baseTerm}</td>
                     <td className="text-text-primary">{item.translations?.en}</td>
                     <td className="text-text-primary">{item.translations?.vi}</td>
                     <td className="text-text-primary">{item.translations?.ja}</td>
@@ -121,8 +121,8 @@ export default function GlossaryPage() {
                 {filtered.length === 0 && (
                   <tr>
                     <td colSpan={4}>
-                      <div className="empty-state py-12">
-                        <BookOpen size={32} />
+                      <div className="empty-state py-10">
+                        <BookOpen size={24} />
                         <p className="text-sm">{t('common.noData')}</p>
                       </div>
                     </td>
@@ -136,9 +136,9 @@ export default function GlossaryPage() {
 
       {/* Add term modal */}
       <Modal open={showAdd} onClose={() => setShowAdd(false)} title={t('glossary.addTerm')}>
-        <form onSubmit={handleAdd} className="space-y-4">
+        <form onSubmit={handleAdd} className="space-y-3.5">
           <div>
-            <label className="block text-sm font-medium text-text-secondary mb-1.5">
+            <label className="block text-sm font-medium text-text-secondary mb-1">
               {t('glossary.term')} *
             </label>
             <input
@@ -152,7 +152,7 @@ export default function GlossaryPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-text-secondary mb-1.5">
+            <label className="block text-sm font-medium text-text-secondary mb-1">
               {t('glossary.english')} *
             </label>
             <input
@@ -166,7 +166,7 @@ export default function GlossaryPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-text-secondary mb-1.5">
+            <label className="block text-sm font-medium text-text-secondary mb-1">
               {t('glossary.vietnamese')} *
             </label>
             <input
@@ -180,7 +180,7 @@ export default function GlossaryPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-text-secondary mb-1.5">
+            <label className="block text-sm font-medium text-text-secondary mb-1">
               {t('glossary.japanese')} *
             </label>
             <input
@@ -197,8 +197,8 @@ export default function GlossaryPage() {
             <p className="text-sm text-danger">{addMutation.error?.message}</p>
           )}
 
-          <div className="flex items-center justify-end gap-3 pt-2">
-            <Button variant="secondary" type="button" onClick={() => setShowAdd(false)}>
+          <div className="flex items-center justify-end gap-2 pt-1">
+            <Button variant="ghost" type="button" onClick={() => setShowAdd(false)}>
               {t('common.cancel')}
             </Button>
             <Button type="submit" disabled={addMutation.isPending}>

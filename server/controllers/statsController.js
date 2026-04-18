@@ -7,21 +7,29 @@ const ITGlossary = require('../models/ITGlossary');
 // @route   GET /api/stats
 const getDashboardStats = async (req, res) => {
     try {
+        const userId = req.user.id;
+
         const [activeProjects, pendingTasks, glossaryTerms] = await Promise.all([
-            Project.countDocuments({ status: 'active' }),
-            Task.countDocuments({ status: 'ongoing' }),
+            Project.countDocuments({ status: 'active', members: userId }),
+            Task.countDocuments({ status: 'ongoing', assigneeId: userId }),
             ITGlossary.countDocuments(),
         ]);
 
-        // Reports created in the last 7 days
+        // Reports created in the last 7 days by the user
         const oneWeekAgo = new Date();
         oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
         const reportsThisWeek = await HourensoReports.countDocuments({
+            authorId: userId,
             createdAt: { $gte: oneWeekAgo },
         });
 
-        // Recent activity — last 5 reports across all projects
-        const recentReports = await HourensoReports.find()
+        // Recent activity — last 5 reports by the user or on user's projects
+        const userProjects = await Project.find({ members: userId }).select('_id');
+        const projectIds = userProjects.map(p => p._id);
+        
+        const recentReports = await HourensoReports.find({
+            $or: [{ authorId: userId }, { projectId: { $in: projectIds } }]
+        })
             .sort({ createdAt: -1 })
             .limit(5)
             .populate('authorId', 'name role')

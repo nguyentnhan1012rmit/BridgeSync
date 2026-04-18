@@ -9,9 +9,9 @@ import { getProjects } from '@/api/projects'
 import { getProjectMembers } from '@/api/projects'
 
 const statusConfig = {
-  ongoing:   { color: 'bg-info/10 text-info border border-info/20',         dot: 'bg-info',    label: 'Ongoing' },
-  completed: { color: 'bg-success/10 text-success border border-success/20', dot: 'bg-success', label: 'Completed' },
-  delayed:   { color: 'bg-danger/10 text-danger border border-danger/20',   dot: 'bg-danger',  label: 'Delayed' },
+  ongoing:   { bg: 'oklch(0.52 0.10 240 / 0.1)', fg: 'oklch(0.42 0.10 240)', dot: 'oklch(0.52 0.10 240)' },
+  completed: { bg: 'oklch(0.55 0.14 150 / 0.1)', fg: 'oklch(0.45 0.14 150)', dot: 'oklch(0.55 0.14 150)' },
+  delayed:   { bg: 'oklch(0.52 0.16 25 / 0.1)',  fg: 'oklch(0.42 0.16 25)',  dot: 'oklch(0.52 0.16 25)' },
 }
 
 const statusCycle = ['ongoing', 'completed', 'delayed']
@@ -80,12 +80,12 @@ export default function TasksPage() {
   }
 
   return (
-    <div className="space-y-6" style={{ maxWidth: '80rem' }}>
+    <div style={{ maxWidth: '76rem' }}>
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
         <div>
-          <h1 className="text-2xl font-bold text-text-primary tracking-tight">{t('tasks.title')}</h1>
-          <p className="text-text-secondary text-sm mt-1">
+          <h1 style={{ fontSize: '1.25rem', fontWeight: 600, letterSpacing: '-0.02em' }} className="text-text-primary">{t('tasks.title')}</h1>
+          <p style={{ fontSize: '0.875rem', marginTop: '2px' }} className="text-text-muted">
             {selectedProject
               ? `${tasks.length} ${t('tasks.title').toLowerCase()}`
               : t('tasks.selectProject')}
@@ -100,48 +100,48 @@ export default function TasksPage() {
 
       {/* Project selector */}
       <div className="flex items-center gap-3 flex-wrap">
-        <div className="relative min-w-[240px]">
+        <div className="relative min-w-[220px]">
           <select
             value={selectedProject}
             onChange={(e) => setSelectedProject(e.target.value)}
-            className="form-input appearance-none pr-10 cursor-pointer"
+            className="form-input appearance-none pr-9 cursor-pointer text-sm"
           >
             <option value="">{t('tasks.selectProject')}</option>
             {projects.map((p) => (
               <option key={p._id} value={p._id}>{p.name}</option>
             ))}
           </select>
-          <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+          <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
         </div>
       </div>
 
       {/* Hover-to-translate hint */}
       {selectedProject && (
-        <div className="flex items-center gap-2.5 px-4 py-3 bg-accent/5 border border-accent/15 rounded-2xl text-sm text-accent-dark">
-          <Info size={16} className="flex-shrink-0" />
+        <div className="flex items-center gap-2 px-3 py-2 bg-accent/4 border border-accent/10 rounded-lg text-sm text-accent-dark">
+          <Info size={14} className="flex-shrink-0" />
           <span>{t('tasks.hoverToTranslate')}</span>
         </div>
       )}
 
       {/* Error state */}
       {isError && (
-        <div className="flex items-center gap-2.5 p-4 bg-danger/8 border border-danger/15 rounded-2xl text-sm text-danger">
-          <AlertCircle size={16} />
+        <div className="flex items-center gap-2 p-3 bg-danger/5 border border-danger/10 rounded-lg text-sm text-danger">
+          <AlertCircle size={15} />
           <span>{error?.message || 'Failed to load tasks'}</span>
         </div>
       )}
 
       {/* Loading */}
       {isLoading && (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 size={28} className="animate-spin text-primary" />
+        <div className="flex items-center justify-center py-16">
+          <Loader2 size={22} className="animate-spin text-text-muted" />
         </div>
       )}
 
       {/* Empty state */}
       {selectedProject && !isLoading && !isError && tasks.length === 0 && (
-        <Card className="empty-state py-16">
-          <ListChecks size={36} />
+        <Card className="empty-state py-14">
+          <ListChecks size={28} />
           <p className="text-sm">{t('common.noData')}</p>
         </Card>
       )}
@@ -153,9 +153,9 @@ export default function TasksPage() {
             {tasks.map((task) => {
               const cfg = statusConfig[task.status] || statusConfig.ongoing
               return (
-                <div key={task._id} className="flex items-center gap-4 px-6 py-4 hover:bg-primary/3 transition-colors group">
+                <div key={task._id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 20px', transition: 'background 150ms' }} className="hover:bg-surface-alt/50 group">
                   {/* Status dot */}
-                  <div className={`w-2.5 h-2.5 rounded-full ${cfg.dot} flex-shrink-0 ring-4 ring-current/8`} />
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', flexShrink: 0, background: cfg.dot }} />
 
                   {/* Task info */}
                   <div className="flex-1 min-w-0">
@@ -166,7 +166,7 @@ export default function TasksPage() {
                   </div>
 
                   {/* Assignee */}
-                  <div className="hidden sm:block text-sm text-text-secondary min-w-[120px]">
+                  <div className="hidden sm:block text-sm text-text-muted min-w-[100px]">
                     {task.assigneeId?.name || '—'}
                   </div>
 
@@ -174,7 +174,7 @@ export default function TasksPage() {
                   <button
                     onClick={() => cycleStatus(task)}
                     disabled={updateStatusMutation.isPending}
-                    className={`text-xs font-medium px-2.5 py-1 rounded-full cursor-pointer transition-all hover:scale-105 active:scale-95 ${cfg.color}`}
+                    style={{ fontSize: '0.6875rem', fontWeight: 500, padding: '2px 8px', borderRadius: '9999px', cursor: 'pointer', border: 'none', background: cfg.bg, color: cfg.fg, transition: 'all 150ms' }}
                     title={t('tasks.clickToChangeStatus')}
                   >
                     {t(`tasks.statusOptions.${task.status}`) || task.status}
@@ -193,9 +193,9 @@ export default function TasksPage() {
 
       {/* Create task modal */}
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title={t('tasks.newTask')}>
-        <form onSubmit={handleCreate} className="space-y-4">
+        <form onSubmit={handleCreate} className="space-y-3.5">
           <div>
-            <label className="block text-sm font-medium text-text-secondary mb-1.5">
+            <label className="block text-sm font-medium text-text-secondary mb-1">
               {t('tasks.taskName')} *
             </label>
             <input
@@ -209,7 +209,7 @@ export default function TasksPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-text-secondary mb-1.5">
+            <label className="block text-sm font-medium text-text-secondary mb-1">
               {t('tasks.description')}
             </label>
             <textarea
@@ -222,21 +222,21 @@ export default function TasksPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-text-secondary mb-1.5">
+            <label className="block text-sm font-medium text-text-secondary mb-1">
               {t('tasks.assignee')}
             </label>
             <div className="relative">
               <select
                 value={form.assigneeId}
                 onChange={(e) => setForm({ ...form, assigneeId: e.target.value })}
-                className="form-input appearance-none pr-10 cursor-pointer"
+                className="form-input appearance-none pr-9 cursor-pointer"
               >
                 <option value="">{t('tasks.unassigned')}</option>
                 {members.map((m) => (
                   <option key={m._id} value={m._id}>{m.name} ({m.role})</option>
                 ))}
               </select>
-              <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+              <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
             </div>
           </div>
 
@@ -244,8 +244,8 @@ export default function TasksPage() {
             <p className="text-sm text-danger">{createMutation.error?.message}</p>
           )}
 
-          <div className="flex items-center justify-end gap-3 pt-2">
-            <Button variant="secondary" type="button" onClick={() => setShowCreate(false)}>
+          <div className="flex items-center justify-end gap-2 pt-1">
+            <Button variant="ghost" type="button" onClick={() => setShowCreate(false)}>
               {t('common.cancel')}
             </Button>
             <Button type="submit" disabled={createMutation.isPending}>

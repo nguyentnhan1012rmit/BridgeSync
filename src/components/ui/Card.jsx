@@ -8,15 +8,14 @@ export default function Card({
   const paddings = {
     none: '',
     sm: 'p-4',
-    md: 'p-6',
-    lg: 'p-8',
+    md: 'p-5',
+    lg: 'p-7',
   }
 
   return (
     <div
       className={`
-        bg-surface-raised rounded-2xl border border-border
-        shadow-sm
+        bg-surface-raised rounded-xl border border-border shadow-sm
         ${paddings[padding]}
         ${hover ? 'stat-card hover:border-border-hover cursor-pointer' : ''}
         ${className}

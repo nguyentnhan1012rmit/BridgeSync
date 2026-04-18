@@ -39,30 +39,30 @@ export default function Modal({ open, onClose, title, children, maxWidth = 'max-
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/25 backdrop-blur-[2px]"
         onClick={onClose}
-        style={{ animation: 'fadeIn 150ms ease' }}
+        style={{ animation: 'fadeIn 120ms ease' }}
       />
 
       {/* Panel */}
       <div
-        className="relative w-full bg-surface-raised rounded-2xl border border-border
+        className="relative w-full bg-surface-raised rounded-xl border border-border
           shadow-xl overflow-hidden"
-        style={{ maxWidth: resolvedWidth, animation: 'slideUp 250ms cubic-bezier(0.34, 1.56, 0.64, 1)' }}
+        style={{ maxWidth: resolvedWidth, animation: 'slideUp 200ms cubic-bezier(0.25, 0.1, 0.25, 1)' }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-surface-alt/30">
-          <h2 className="text-lg font-semibold text-text-primary tracking-tight">{title}</h2>
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-border">
+          <h2 className="text-sm font-semibold text-text-primary tracking-tight">{title}</h2>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-surface-alt transition-colors cursor-pointer text-text-muted hover:text-text-primary"
+            className="p-1 rounded-md hover:bg-surface-alt transition-colors cursor-pointer text-text-muted hover:text-text-primary"
           >
-            <X size={18} />
+            <X size={16} />
           </button>
         </div>
 
         {/* Body */}
-        <div className="px-6 py-5 max-h-[70vh] overflow-y-auto">{children}</div>
+        <div className="px-5 py-4 max-h-[70vh] overflow-y-auto">{children}</div>
       </div>
     </div>
   )

@@ -18,17 +18,17 @@ function HourensoSection({ title, icon: Icon, children, defaultOpen = true, acce
   }
 
   return (
-    <div className="border border-border rounded-xl overflow-hidden">
+    <div className="border border-border rounded-lg overflow-hidden">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-4 py-3.5 bg-surface-alt/40 hover:bg-surface-alt cursor-pointer transition-colors"
+        className="w-full flex items-center justify-between px-3.5 py-2.5 bg-surface-alt/30 hover:bg-surface-alt/60 cursor-pointer transition-colors"
       >
-        <div className="flex items-center gap-2.5">
-          {Icon && <Icon size={16} className={colorMap[accentColor] || 'text-primary'} />}
+        <div className="flex items-center gap-2">
+          {Icon && <Icon size={14} className={colorMap[accentColor] || 'text-primary'} />}
           <span className="font-medium text-sm text-text-primary">{title}</span>
         </div>
         <div className={`transition-transform duration-200 ${open ? 'rotate-0' : 'rotate-180'}`}>
-          <ChevronUp size={16} className="text-text-muted" />
+          <ChevronUp size={14} className="text-text-muted" />
         </div>
       </button>
       <div
@@ -36,7 +36,7 @@ function HourensoSection({ title, icon: Icon, children, defaultOpen = true, acce
           open ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
         }`}
       >
-        <div className="px-4 py-3.5 space-y-3 text-sm">{children}</div>
+        <div className="px-3.5 py-3 space-y-2.5 text-sm">{children}</div>
       </div>
     </div>
   )
@@ -45,8 +45,8 @@ function HourensoSection({ title, icon: Icon, children, defaultOpen = true, acce
 function FieldRow({ label, value }) {
   return (
     <div>
-      <span className="text-text-muted text-xs uppercase tracking-wider font-medium">{label}</span>
-      <p className="text-text-primary mt-0.5">{value || '—'}</p>
+      <span className="text-text-muted text-[11px] uppercase tracking-wider font-medium">{label}</span>
+      <p className="text-text-primary text-sm mt-0.5">{value || '—'}</p>
     </div>
   )
 }
@@ -149,21 +149,21 @@ export default function HourensoPage() {
   const canCreateReport = user?.role === 'Developer' || user?.role === 'BrSE' || user?.role === 'PM'
 
   return (
-    <div className="space-y-6" style={{ maxWidth: '64rem' }}>
+    <div style={{ maxWidth: '60rem' }}>
       {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
         <div>
-          <h1 className="text-2xl font-bold text-text-primary tracking-tight">{t('hourenso.title')}</h1>
-          <p className="text-text-secondary text-sm mt-1">{t('hourenso.subtitle')}</p>
+          <h1 style={{ fontSize: '1.25rem', fontWeight: 600, letterSpacing: '-0.02em' }} className="text-text-primary">{t('hourenso.title')}</h1>
+          <p style={{ fontSize: '0.875rem', marginTop: '2px' }} className="text-text-muted">{t('hourenso.subtitle')}</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {selectedProject && reports.length > 0 && (
-            <Button variant="accent" icon={Download} onClick={handleExportExcel}>
+            <Button variant="secondary" icon={Download} onClick={handleExportExcel} size="sm">
               {t('hourenso.exportExcel')}
             </Button>
           )}
           {selectedProject && canCreateReport && (
-            <Button icon={Plus} onClick={() => setShowCreate(true)}>
+            <Button icon={Plus} onClick={() => setShowCreate(true)} size="sm">
               {t('hourenso.newReport')}
             </Button>
           )}
@@ -171,59 +171,59 @@ export default function HourensoPage() {
       </div>
 
       {/* Project selector */}
-      <div className="relative min-w-[240px]" style={{ maxWidth: '24rem' }}>
+      <div className="relative min-w-[220px]" style={{ maxWidth: '22rem' }}>
         <select
           value={selectedProject}
           onChange={(e) => setSelectedProject(e.target.value)}
-          className="form-input appearance-none pr-10 cursor-pointer"
+          className="form-input appearance-none pr-9 cursor-pointer text-sm"
         >
           <option value="">{t('tasks.selectProject')}</option>
           {projects.map((p) => (
             <option key={p._id} value={p._id}>{p.name}</option>
           ))}
         </select>
-        <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+        <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
       </div>
 
       {/* Error state */}
       {isError && (
-        <div className="flex items-center gap-2.5 p-4 bg-danger/8 border border-danger/15 rounded-2xl text-sm text-danger">
-          <AlertCircle size={16} />
+        <div className="flex items-center gap-2 p-3 bg-danger/5 border border-danger/10 rounded-lg text-sm text-danger">
+          <AlertCircle size={15} />
           <span>{error?.message || 'Failed to load reports'}</span>
         </div>
       )}
 
       {/* Loading */}
       {isLoading && (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 size={28} className="animate-spin text-primary" />
+        <div className="flex items-center justify-center py-16">
+          <Loader2 size={22} className="animate-spin text-text-muted" />
         </div>
       )}
 
       {/* Empty state */}
       {selectedProject && !isLoading && !isError && reports.length === 0 && (
-        <Card className="empty-state py-16">
-          <FileText size={36} />
+        <Card className="empty-state py-14">
+          <FileText size={28} />
           <p className="text-sm">{t('common.noData')}</p>
         </Card>
       )}
 
       {/* Reports */}
-      <div className="space-y-5">
+      <div className="space-y-4">
         {reports.map((report) => (
-          <Card key={report._id} className="space-y-4 report-card">
+          <Card key={report._id} className="space-y-3 report-card">
             {/* Report header */}
-            <div className="flex items-center gap-4 text-sm text-text-secondary pb-3 border-b border-border">
-              <div className="flex items-center gap-1.5">
-                <Calendar size={14} />
+            <div className="flex items-center gap-3 text-sm text-text-muted pb-2.5 border-b border-border">
+              <div className="flex items-center gap-1">
+                <Calendar size={12} />
                 <span>{new Date(report.createdAt).toLocaleDateString()}</span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <User size={14} />
+              <div className="flex items-center gap-1">
+                <User size={12} />
                 <span>{report.authorId?.name || '—'}</span>
               </div>
               {report.authorId?.role && (
-                <span className="text-xs bg-primary/8 text-primary px-2.5 py-0.5 rounded-full font-medium border border-primary/15">
+                <span className="text-[11px] bg-primary/5 text-primary px-2 py-0.5 rounded-full font-medium">
                   {report.authorId.role}
                 </span>
               )}
@@ -257,10 +257,10 @@ export default function HourensoPage() {
 
       {/* Create report modal */}
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title={t('hourenso.newReport')} maxWidth="max-w-2xl">
-        <form onSubmit={handleCreate} className="space-y-6">
+        <form onSubmit={handleCreate} className="space-y-5">
           {/* Houkoku section */}
           <div>
-            <h3 className="text-sm font-semibold text-primary mb-3 flex items-center gap-1.5">
+            <h3 className="text-sm font-medium text-primary mb-2.5 flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-primary" />
               {t('hourenso.sections.houkoku')}
             </h3>
@@ -314,7 +314,7 @@ export default function HourensoPage() {
 
           {/* Renraku section */}
           <div>
-            <h3 className="text-sm font-semibold text-accent-dark mb-3 flex items-center gap-1.5">
+            <h3 className="text-sm font-medium text-accent-dark mb-2.5 flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-accent" />
               {t('hourenso.sections.renraku')}
             </h3>
@@ -333,7 +333,7 @@ export default function HourensoPage() {
 
           {/* Soudan section */}
           <div>
-            <h3 className="text-sm font-semibold text-warning mb-3 flex items-center gap-1.5">
+            <h3 className="text-sm font-medium text-warning mb-2.5 flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-warning" />
               {t('hourenso.sections.soudan')}
             </h3>
@@ -380,8 +380,8 @@ export default function HourensoPage() {
             <p className="text-sm text-danger">{createMutation.error?.message}</p>
           )}
 
-          <div className="flex items-center justify-end gap-3 pt-2">
-            <Button variant="secondary" type="button" onClick={() => setShowCreate(false)}>
+          <div className="flex items-center justify-end gap-2 pt-1">
+            <Button variant="ghost" type="button" onClick={() => setShowCreate(false)}>
               {t('common.cancel')}
             </Button>
             <Button type="submit" disabled={createMutation.isPending}>
