@@ -4,27 +4,27 @@ BridgeSync is a specialized project management platform built to resolve the "lo
 
 Unlike generic tools like Jira which fail to capture cultural nuances and place a heavy translation burden on Bridge System Engineers (BrSEs), BridgeSync aims to reduce manual translation time, minimize requirement-related rework, and establish clear communication protocols.
 
-This project was built as part of the ISYS2101 - Software Engineering Project Management university course.
+This project was built as part of the **ISYS2101 — Software Engineering Project Management** university course.
 
 ---
 
 ## 🚀 Tech Stack
 
-The MVP is built with a modern Full-Stack **MERN** stack:
+The MVP is built with a modern Full-Stack **MERN** architecture:
 
 **Frontend:**
-*   **Core:** React (v19) + Vite (v8)
-*   **Styling:** Tailwind CSS (v4) with custom design system (oklch color palette, glassmorphism, micro-animations)
-*   **State & Caching:** TanStack React Query (v5) + React Context (Auth)
-*   **Internationalization (i18n):** react-i18next (EN / VI / JA)
-*   **Icons:** Lucide React
-*   **Excel Export:** SheetJS (xlsx)
+* **Core:** React (v19) + Vite (v8)
+* **Styling:** Tailwind CSS (v4) with custom design system (oklch color palette, glassmorphism, micro-animations)
+* **State & Caching:** TanStack React Query (v5) + React Context (Auth)
+* **Internationalization (i18n):** react-i18next (EN / VI / JA)
+* **Icons:** Lucide React
+* **Excel Export:** SheetJS (xlsx)
 
 **Backend:**
-*   **Server:** Node.js + Express (v5)
-*   **Database:** MongoDB Atlas + Mongoose (v9)
-*   **Authentication:** JSON Web Tokens (JWT) & bcrypt
-*   **External APIs:** DeepL API integration for dynamic translation fallback
+* **Server:** Node.js + Express (v5)
+* **Database:** MongoDB Atlas + Mongoose (v9)
+* **Authentication:** JSON Web Tokens (JWT) & bcrypt
+* **External APIs:** DeepL API integration for dynamic translation fallback
 
 ---
 
@@ -32,63 +32,70 @@ The MVP is built with a modern Full-Stack **MERN** stack:
 
 ```
 BridgeSync/
-├── src/                          # Frontend (React + Vite)
-│   ├── api/                      # API client layer
-│   │   ├── apiClient.js          # Shared auth fetch wrapper (JWT Bearer header)
-│   │   ├── auth.js               # Login / Register
-│   │   ├── projects.js           # CRUD for projects
-│   │   ├── tasks.js              # CRUD for tasks
-│   │   ├── glossary.js           # GET/POST for glossary terms
-│   │   ├── hourenso.js           # GET/POST for hourenso reports
-│   │   ├── translate.js          # POST for translation
-│   │   └── stats.js              # GET dashboard statistics
+├── src/                              # Frontend (React + Vite)
+│   ├── api/                          # API client layer
+│   │   ├── apiClient.js              # Shared auth fetch wrapper (JWT Bearer)
+│   │   ├── auth.js                   # Login / Register
+│   │   ├── projects.js               # CRUD for projects
+│   │   ├── tasks.js                  # CRUD for tasks
+│   │   ├── glossary.js               # GET/POST for glossary terms
+│   │   ├── hourenso.js               # GET/POST for hourenso reports
+│   │   ├── translate.js              # POST for translation
+│   │   └── stats.js                  # GET dashboard statistics
 │   ├── components/
-│   │   ├── ui/                   # Reusable UI components (Button, Card, Modal, TranslateTooltip)
-│   │   ├── LanguageToggle.jsx    # EN/VI/JA language switcher
-│   │   └── ProtectedRoute.jsx    # Auth guard for routes
+│   │   ├── ui/                       # Reusable UI components
+│   │   │   ├── Button.jsx            # Multi-variant button
+│   │   │   ├── Card.jsx              # Glass-panel card wrapper
+│   │   │   ├── Modal.jsx             # Accessible modal dialog
+│   │   │   ├── SelectTranslate.jsx   # Global select-to-translate widget
+│   │   │   ├── TextHighlighter.jsx   # Auto glossary term highlighter
+│   │   │   ├── TranslateTooltip.jsx  # Hover tooltip for glossary terms
+│   │   │   └── index.js              # Barrel exports
+│   │   ├── LanguageToggle.jsx        # EN/VI/JA language switcher
+│   │   └── ProtectedRoute.jsx        # Auth guard for routes
 │   ├── context/
-│   │   └── AuthContext.jsx       # JWT auth state (token + user in localStorage)
+│   │   └── AuthContext.jsx           # JWT auth state (token + user)
 │   ├── hooks/
-│   │   └── useAuth.js            # Auth hook (login/register/logout mutations)
+│   │   └── useAuth.js                # Auth hook (login/register/logout)
 │   ├── layouts/
-│   │   └── MainLayout.jsx        # Sidebar + topbar layout
-│   ├── locales/                  # i18n translation dictionaries
+│   │   └── MainLayout.jsx            # Sidebar + topbar layout
+│   ├── locales/                      # i18n translation dictionaries
 │   │   ├── en.json
 │   │   ├── vi.json
 │   │   └── ja.json
 │   ├── pages/
-│   │   ├── DashboardPage.jsx     # Live stats + recent activity
-│   │   ├── ProjectsPage.jsx      # Project list + create/delete
-│   │   ├── TasksPage.jsx         # Task board + create + status cycling
-│   │   ├── GlossaryPage.jsx      # IT glossary table + add term
-│   │   ├── HourensoPage.jsx      # Hourenso reports + create + Excel export
+│   │   ├── DashboardPage.jsx         # Live stats + recent activity
+│   │   ├── ProjectsPage.jsx          # Project list + create/delete
+│   │   ├── TasksPage.jsx             # Task board + status cycling
+│   │   ├── GlossaryPage.jsx          # IT glossary table + add term
+│   │   ├── HourensoPage.jsx          # Hourenso reports + Excel export
 │   │   ├── LoginPage.jsx
 │   │   ├── SignupPage.jsx
-│   │   └── SettingsPage.jsx
-│   ├── App.jsx                   # Route definitions
-│   ├── main.jsx                  # Entry point
-│   ├── i18n.js                   # i18next configuration
-│   └── index.css                 # Design system (Tailwind v4 @theme)
-├── server/                       # Backend (Express + MongoDB)
+│   │   └── SettingsPage.jsx          # Language & display preferences
+│   ├── App.jsx                       # Route definitions
+│   ├── main.jsx                      # Entry point (React Query + i18n)
+│   ├── i18n.js                       # i18next configuration
+│   └── index.css                     # Design system (Tailwind v4 @theme)
+├── server/                           # Backend (Express + MongoDB)
 │   ├── controllers/
-│   │   ├── authController.js     # Register, Login, Logout, Refresh token
-│   │   ├── projectController.js  # CRUD for projects
-│   │   ├── taskController.js     # CRUD for tasks
-│   │   ├── glossaryController.js # GET/POST for glossary
-│   │   ├── hourensoController.js # GET/POST for hourenso reports
-│   │   ├── translationController.js  # Glossary-first translation with DeepL fallback
-│   │   └── statsController.js    # Aggregated dashboard statistics
+│   │   ├── authController.js         # Register, Login, Logout, Refresh
+│   │   ├── projectController.js      # CRUD for projects
+│   │   ├── taskController.js         # CRUD for tasks
+│   │   ├── glossaryController.js     # GET/POST for glossary
+│   │   ├── hourensoController.js     # GET/POST for hourenso reports
+│   │   ├── translationController.js  # Glossary-first + DeepL fallback
+│   │   └── statsController.js        # Aggregated dashboard statistics
 │   ├── middleware/
-│   │   ├── authMiddleware.js     # JWT protect + role-based authorize
-│   │   └── projectMiddleware.js  # Project-scoped access
+│   │   ├── authMiddleware.js         # JWT protect + role-based authorize
+│   │   └── projectMiddleware.js      # Project-scoped access
 │   ├── models/
-│   │   ├── Users.js              # User schema (name, email, role, preferredLanguage)
-│   │   ├── Projects.js           # Project schema (name, description, status, members)
-│   │   ├── Tasks.js              # Task schema (projectId, title, status, assignee, reporter)
-│   │   ├── ITGlossary.js         # Trilingual glossary schema (baseTerm, translations)
-│   │   └── HourensoReports.js    # Hourenso schema (houkoku, renraku, soudan)
+│   │   ├── Users.js                  # User schema (name, email, role)
+│   │   ├── Projects.js              # Project schema (name, status, members)
+│   │   ├── Tasks.js                  # Task schema (projectId, status, assignee)
+│   │   ├── ITGlossary.js            # Trilingual glossary schema
+│   │   └── HourensoReports.js       # Hourenso schema (報連相)
 │   ├── permission/
-│   │   └── project.js            # Scoped project filtering by user role
+│   │   └── project.js                # Scoped project filtering by role
 │   ├── routes/
 │   │   ├── authRoutes.js
 │   │   ├── projectRoutes.js
@@ -97,12 +104,18 @@ BridgeSync/
 │   │   ├── hourensoRoutes.js
 │   │   ├── translationRoutes.js
 │   │   └── statsRoutes.js
-│   ├── server.js                 # Express app entry point
-│   └── .env                      # Environment variables
-├── package.json                  # Frontend dependencies + scripts
-├── vite.config.js                # Vite config with API proxy
-├── FEATURES.md                   # Detailed feature documentation
-└── README.md                     # This file
+│   ├── seed_user_data.js             # Database seeding script (dev utility)
+│   ├── server.js                     # Express app entry point
+│   ├── .env.example                  # Environment variable template
+│   └── .env                          # Environment variables (git-ignored)
+├── public/
+│   └── favicon.svg                   # App favicon
+├── package.json                      # Frontend dependencies + scripts
+├── vite.config.js                    # Vite config with API proxy
+├── eslint.config.js                  # ESLint configuration
+├── index.html                        # HTML entry point
+├── FEATURES.md                       # Detailed feature documentation
+└── README.md                         # This file
 ```
 
 ---
@@ -112,10 +125,14 @@ BridgeSync/
 ### Prerequisites
 - Node.js (v18+)
 - MongoDB Atlas account (or local MongoDB)
+- DeepL API key (optional — for translation fallback)
 
 ### 1. Clone and install dependencies
 
 ```bash
+git clone https://github.com/nguyentnhan1012rmit/BridgeSync.git
+cd BridgeSync
+
 # Install frontend dependencies
 npm install
 
@@ -127,7 +144,13 @@ cd ..
 
 ### 2. Configure environment variables
 
-Create/edit `server/.env`:
+Copy the template and fill in your values:
+
+```bash
+cp server/.env.example server/.env
+```
+
+Edit `server/.env`:
 
 ```env
 PORT=3000
@@ -231,25 +254,33 @@ You can register new accounts via the Signup page (`/signup`). Choose from the f
 
 For a detailed breakdown of all features, please see the [FEATURES.md](./FEATURES.md) file.
 
+**Core features include:**
+1. **Bilingual Dual-View Interface** — Instant EN/VI/JA switching via react-i18next
+2. **Smart Hover-to-Translate** — Auto-detection and highlighting of IT glossary terms with trilingual tooltips
+3. **Select-to-Translate** — Select any text and get instant translations via IT Glossary + DeepL
+4. **Automated Hourenso Templates** — Structured 報連相 reporting with Excel export
+5. **Project Management with RBAC** — Role-based project creation, deletion, and scoping
+6. **Task Management with Status Cycling** — Inline status cycling (ongoing → completed → delayed)
+7. **Live Dashboard** — Aggregated stats with auto-refresh
+8. **Secure Backend** — JWT auth, role middleware, translation API proxying
+
 ---
 
 ## 🎨 UI/UX Design System
 
-BridgeSync features a premium, modern design system built on top of Tailwind CSS v4:
+BridgeSync features a premium, modern design system built on Tailwind CSS v4:
 
 | Design Element | Details |
 |---|---|
 | **Color Palette** | Semantic oklch-based colors (primary sapphire, teal accent, amber warning, semantic surfaces) |
 | **Typography** | Inter + Noto Sans JP via Google Fonts, tight letter-spacing on headings |
 | **Glassmorphism** | Frosted-glass topbar and auth cards with `backdrop-filter: blur` |
-| **Micro-Animations** | Button press (`scale-[0.97]`), card hover lift (`translateY(-2px)`), modal bounce entrance, page slide-in, skeleton shimmer loaders |
-| **Auth Pages** | Glassmorphic card on radial gradient background with icon-prefixed inputs |
-| **Sidebar** | Collapsible with active indicator bar, user avatar footer, smooth transitions |
+| **Micro-Animations** | Button press, card hover lift, modal bounce entrance, page slide-in, skeleton shimmer loaders |
+| **Sidebar** | Collapsible with active indicator, user avatar footer, smooth transitions |
 | **Data Tables** | Uppercase headers, hover-highlighted rows, rounded containers |
 | **Status Badges** | Color-coded bordered badges with click-to-cycle interaction |
-| **Language Toggle** | iOS-style segmented control with flag emojis |
+| **Language Toggle** | iOS-style segmented control with flag emojis (🇺🇸 🇻🇳 🇯🇵) |
 | **Empty States** | Contextual icons with muted labels for zero-data scenarios |
-| **Focus States** | Visible ring outlines on all interactive elements for accessibility |
 
 ---
 
@@ -269,4 +300,5 @@ BridgeSync features a premium, modern design system built on top of Tailwind CSS
 | View Reports | ✅ | ✅ | ✅ | ✅ |
 | Create Report | ✅ | ✅ | ✅ | ❌ |
 | Export Reports (Excel) | ✅ | ✅ | ✅ | ✅ |
-| Translate Text | ✅ | ✅ | ✅ | ✅ |
+| Select-to-Translate | ✅ | ✅ | ✅ | ✅ |
+| Hover-to-Translate | ✅ | ✅ | ✅ | ✅ |

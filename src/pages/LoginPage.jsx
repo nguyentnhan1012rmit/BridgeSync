@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Link } from 'react-router-dom';
-import { LogIn, Mail, Lock, AlertCircle } from 'lucide-react';
+import { LogIn, Mail, Lock, AlertCircle, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui';
 
 export default function LoginPage() {
-  const { login, isLoggingIn, loginError } = useAuth();
+  const { login, isLoggingIn, isLoginSuccess, loginError } = useAuth();
   
   const [formData, setFormData] = useState({
     email: '',
@@ -26,15 +26,15 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="auth-bg flex items-center justify-center p-4 min-h-screen">
-      <div className="auth-card w-full max-w-[420px] p-8 sm:p-10 shadow-xl bg-surface-raised">
+    <div className="auth-bg">
+      <div className="auth-card">
         
         {/* Brand Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-primary rounded-xl mb-4 shadow-sm">
-            <span className="text-white font-bold text-xl tracking-tighter">B</span>
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-primary to-accent rounded-xl mb-5 shadow-[0_0_20px_oklch(0.65_0.25_300/0.4)]">
+            <span className="text-white font-bold text-2xl tracking-tighter drop-shadow-md">B</span>
           </div>
-          <h2 className="text-2xl font-bold text-text-primary tracking-tight">
+          <h2 className="text-3xl font-bold text-text-primary tracking-tight">
             Welcome back
           </h2>
           <p className="text-sm text-text-muted mt-2">
@@ -50,7 +50,7 @@ export default function LoginPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* Email Field */}
           <div>
             <label className="block text-sm font-medium text-text-secondary mb-1.5">
@@ -64,7 +64,7 @@ export default function LoginPage() {
                 required
                 value={formData.email}
                 onChange={handleChange}
-                className="form-input w-full pl-10 py-2.5 text-sm"
+                className="form-input w-full !pl-11 py-3 text-sm"
                 placeholder="you@example.com"
               />
             </div>
@@ -83,7 +83,7 @@ export default function LoginPage() {
                 required
                 value={formData.password}
                 onChange={handleChange}
-                className="form-input w-full pl-10 py-2.5 text-sm"
+                className="form-input w-full pl-11 py-3 text-sm"
                 placeholder="••••••••"
               />
             </div>
@@ -92,20 +92,20 @@ export default function LoginPage() {
           {/* Submit */}
           <Button
             type="submit"
-            className="w-full mt-2"
+            className={`w-full mt-4 ${isLoginSuccess ? 'bg-success border-success shadow-[0_0_15px_oklch(0.75_0.15_150/0.3)] hover:brightness-100 scale-[0.98]' : ''}`}
             size="lg"
-            disabled={isLoggingIn}
+            disabled={isLoggingIn || isLoginSuccess}
+            icon={isLoggingIn ? null : isLoginSuccess ? CheckCircle : LogIn}
           >
             {isLoggingIn ? (
               <>
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                <span className="w-4 h-4 border-2 border-[oklch(1_1_1/0.3)] border-t-white rounded-full animate-spin mr-2" />
                 Signing in...
               </>
+            ) : isLoginSuccess ? (
+              'Success!'
             ) : (
-              <>
-                <LogIn size={18} className="mr-2" />
-                Sign in
-              </>
+              'Sign in'
             )}
           </Button>
         </form>

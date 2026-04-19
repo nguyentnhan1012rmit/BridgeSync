@@ -9,11 +9,13 @@ import SettingsPage from '@/pages/SettingsPage'
 import LoginPage from '@/pages/LoginPage'
 import SignupPage from '@/pages/SignupPage'
 import ProtectedRoute from '@/components/ProtectedRoute'
+import SelectTranslate from '@/components/ui/SelectTranslate'
 import { AuthProvider } from '@/context/AuthContext'
 
 export default function App() {
   return (
     <AuthProvider>
+      <SelectTranslate />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
@@ -30,3 +32,4 @@ export default function App() {
     </AuthProvider>
   )
 }
+

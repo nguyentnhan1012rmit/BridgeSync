@@ -2,9 +2,10 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Users, Calendar, Trash2, Loader2, AlertCircle, FolderKanban } from 'lucide-react'
-import { Card, Button, Modal } from '@/components/ui'
+import { Card, Button, Modal, TextHighlighter } from '@/components/ui'
 import { useAuth } from '@/hooks/useAuth'
 import { getProjects, createProject, deleteProject } from '@/api/projects'
+import { getGlossary } from '@/api/glossary'
 
 const statusColors = {
   active: { background: 'oklch(0.55 0.14 150 / 0.1)', color: 'oklch(0.45 0.14 150)' },
@@ -21,6 +22,12 @@ export default function ProjectsPage() {
   const { data: projects = [], isLoading, isError, error } = useQuery({
     queryKey: ['projects'],
     queryFn: getProjects,
+  })
+
+  // ── Fetch glossary terms ──
+  const { data: glossaryTerms = [] } = useQuery({
+    queryKey: ['glossary'],
+    queryFn: getGlossary,
   })
 
   const createMutation = useMutation({
@@ -106,7 +113,7 @@ export default function ProjectsPage() {
                   </h3>
                   {project.description && (
                     <p style={{ fontSize: '0.8125rem', marginTop: '4px' }} className="text-text-muted line-clamp-2">
-                      {project.description}
+                       <TextHighlighter text={project.description} glossaryTerms={glossaryTerms} />
                     </p>
                   )}
                 </div>

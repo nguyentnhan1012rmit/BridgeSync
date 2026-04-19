@@ -1,6 +1,5 @@
 const axios = require('axios');
 const ITGlossary = require('../models/ITGlossary');
-require('dotenv').config();
 
 // @desc    Translate text (Checks Glossary first, then falls back to API)
 // @route   POST /api/translate
@@ -12,8 +11,10 @@ const translateText = async (req, res) => {
             return res.status(400).json({ message: 'Text and target language are required.' });
         }
 
-        // 1. Check Custom IT Glossary First
-        const glossaryMatch = await ITGlossary.findOne({ baseTerm: text.toLowerCase() });
+        // 1. Check Custom IT Glossary First (case-insensitive)
+        const glossaryMatch = await ITGlossary.findOne({
+            baseTerm: { $regex: new RegExp(`^${text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }
+        });
 
         if (glossaryMatch && glossaryMatch.translations[targetLang]) {
             glossaryMatch.useCount += 1;
@@ -26,46 +27,50 @@ const translateText = async (req, res) => {
             });
         }
 
-        // 2. Fallback to External API (Example using DeepL Free API)
+        // 2. Fallback to DeepL API
+        const deeplApiEndpoint = process.env.DEEPL_API_URL || 'https://api-free.deepl.com/v2/translate';
+        const deeplApiKey = process.env.DEEPL_API_KEY;
 
-        const deeplApiEndpoint = process.env.DEEPL_API_URL || process.env.DEEPL_URL;
-        const useLegacyDeeplRequest = Boolean(process.env.DEEPL_API_URL);
-        if (!deeplApiEndpoint) {
-            return res.status(500).json({
-                message: 'DeepL API endpoint is not configured. Please set either DEEPL_API_URL or DEEPL_URL.'
+        if (!deeplApiKey) {
+            return res.json({
+                originalText: text,
+                translatedText: text,
+                source: 'No translation API key configured'
             });
         }
 
-        let response;
-        if (useLegacyDeeplRequest) {
-            response = await axios.post(deeplApiEndpoint, null, {
-                params: {
-                    auth_key: process.env.DEEPL_API_KEY,
-                    text,
-                    target_lang: targetLang.toUpperCase()
-                }
-            });
-        } else {
-            response = await axios.post(deeplApiEndpoint, {
+        try {
+            const response = await axios.post(deeplApiEndpoint, {
                 text: [text],
                 target_lang: targetLang.toUpperCase()
             }, {
                 headers: {
-                    'Authorization': `DeepL-Auth-Key ${process.env.DEEPL_API_KEY}`,
+                    'Authorization': `DeepL-Auth-Key ${deeplApiKey}`,
                     'Content-Type': 'application/json'
-                }
+                },
+                timeout: 10000,
+            });
+
+            return res.json({
+                originalText: text,
+                translatedText: response.data.translations[0].text,
+                source: 'DeepL API'
+            });
+        } catch (deeplError) {
+            const errMsg = deeplError.response?.data?.message || deeplError.message;
+            console.error('DeepL API Error:', errMsg);
+
+            // Return original text gracefully instead of crashing with 500
+            return res.json({
+                originalText: text,
+                translatedText: text,
+                source: 'DeepL unavailable'
             });
         }
 
-        res.json({
-            originalText: text,
-            translatedText: response.data.translations[0].text,
-            source: 'DeepL API'
-        });
-
     } catch (error) {
-        console.error('Translation API Error:', error.response ? error.response.data : error.message);
-        res.status(500).json({ message: 'Failed to translate text via external API.' });
+        console.error('Translation API Error:', error.message);
+        res.status(500).json({ message: 'Failed to translate text.' });
     }
 };
 

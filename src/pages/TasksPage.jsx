@@ -2,11 +2,11 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Info, Loader2, AlertCircle, ChevronDown, ListChecks } from 'lucide-react'
-import { Card, Button, Modal, TranslateTooltip } from '@/components/ui'
+import { Card, Button, Modal, TextHighlighter } from '@/components/ui'
 import { useAuth } from '@/hooks/useAuth'
 import { getTasksByProject, createTask, updateTaskStatus } from '@/api/tasks'
-import { getProjects } from '@/api/projects'
-import { getProjectMembers } from '@/api/projects'
+import { getProjects, getProjectMembers } from '@/api/projects'
+import { getGlossary } from '@/api/glossary'
 
 const statusConfig = {
   ongoing:   { bg: 'oklch(0.52 0.10 240 / 0.1)', fg: 'oklch(0.42 0.10 240)', dot: 'oklch(0.52 0.10 240)' },
@@ -42,6 +42,12 @@ export default function TasksPage() {
     queryKey: ['projectMembers', selectedProject],
     queryFn: () => getProjectMembers(selectedProject),
     enabled: !!selectedProject,
+  })
+
+  // ── Fetch glossary terms ──
+  const { data: glossaryTerms = [] } = useQuery({
+    queryKey: ['glossary'],
+    queryFn: getGlossary,
   })
 
   // ── Create task ──
@@ -159,9 +165,13 @@ export default function TasksPage() {
 
                   {/* Task info */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-text-primary">{task.title}</p>
+                    <p className="text-sm font-medium text-text-primary">
+                      <TextHighlighter text={task.title} glossaryTerms={glossaryTerms} />
+                    </p>
                     {task.description && (
-                      <p className="text-xs text-text-muted mt-0.5 line-clamp-1">{task.description}</p>
+                      <p className="text-xs text-text-muted mt-0.5 line-clamp-1">
+                        <TextHighlighter text={task.description} glossaryTerms={glossaryTerms} />
+                      </p>
                     )}
                   </div>
 

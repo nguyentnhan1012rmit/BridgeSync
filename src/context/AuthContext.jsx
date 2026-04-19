@@ -31,6 +31,14 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
+  useEffect(() => {
+    const handleAuthError = () => {
+      logout();
+    };
+    window.addEventListener('auth-error', handleAuthError);
+    return () => window.removeEventListener('auth-error', handleAuthError);
+  }, []);
+
   const login = (userData) => {
     const { token, user: newUser } = userData;
     setToken(token);

@@ -17,16 +17,20 @@ export const useAuth = () => {
   const loginMutation = useMutation({
     mutationFn: loginUser,
     onSuccess: (data) => {
-      login(data);
-      navigate('/');
+      setTimeout(() => {
+        login(data);
+        navigate('/');
+      }, 600);
     },
   });
 
   const registerMutation = useMutation({
     mutationFn: registerUser,
     onSuccess: (data) => {
-      login(data);
-      navigate('/');
+      setTimeout(() => {
+        login(data);
+        navigate('/');
+      }, 600);
     },
   });
 
@@ -39,10 +43,12 @@ export const useAuth = () => {
     ...authState,
     login: loginMutation.mutateAsync,
     isLoggingIn: loginMutation.isPending,
+    isLoginSuccess: loginMutation.isSuccess,
     loginError: loginMutation.error,
     
     register: registerMutation.mutateAsync,
     isRegistering: registerMutation.isPending,
+    isRegisterSuccess: registerMutation.isSuccess,
     registerError: registerMutation.error,
     
     logout: performLogout,
