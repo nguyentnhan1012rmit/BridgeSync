@@ -1,6 +1,5 @@
 const axios = require('axios');
 const ITGlossary = require('../models/ITGlossary');
-require('dotenv').config();
 
 // @desc    Translate text (Checks Glossary first, then falls back to API)
 // @route   POST /api/translate
