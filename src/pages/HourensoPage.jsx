@@ -2,10 +2,11 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Download, ChevronDown, ChevronUp, Calendar, User, Loader2, AlertCircle, FileText } from 'lucide-react'
-import { Card, Button, Modal } from '@/components/ui'
+import { Card, Button, Modal, TextHighlighter } from '@/components/ui'
 import { useAuth } from '@/hooks/useAuth'
 import { getProjectReports, createReport } from '@/api/hourenso'
 import { getProjects } from '@/api/projects'
+import { getGlossary } from '@/api/glossary'
 import * as XLSX from 'xlsx'
 
 function HourensoSection({ title, icon: Icon, children, defaultOpen = true, accentColor = 'primary' }) {
@@ -42,11 +43,13 @@ function HourensoSection({ title, icon: Icon, children, defaultOpen = true, acce
   )
 }
 
-function FieldRow({ label, value }) {
+function FieldRow({ label, value, glossaryTerms }) {
   return (
     <div>
       <span className="text-text-muted text-[11px] uppercase tracking-wider font-medium">{label}</span>
-      <p className="text-text-primary text-sm mt-0.5">{value || '—'}</p>
+      <p className="text-text-primary text-sm mt-0.5">
+        {value ? <TextHighlighter text={String(value)} glossaryTerms={glossaryTerms} /> : '—'}
+      </p>
     </div>
   )
 }
@@ -81,6 +84,12 @@ export default function HourensoPage() {
     queryKey: ['hourenso', selectedProject],
     queryFn: () => getProjectReports(selectedProject),
     enabled: !!selectedProject,
+  })
+
+  // ── Fetch glossary terms ──
+  const { data: glossaryTerms = [] } = useQuery({
+    queryKey: ['glossary'],
+    queryFn: getGlossary,
   })
 
   // ── Create report ──
@@ -231,24 +240,25 @@ export default function HourensoPage() {
 
             {/* Houkoku */}
             <HourensoSection title={t('hourenso.sections.houkoku')} accentColor="primary">
-              <FieldRow label={t('hourenso.fields.currentStatus')} value={report.houkoku?.currentStatus} />
-              <FieldRow label={t('hourenso.fields.progress')} value={report.houkoku?.progress} />
-              <FieldRow label={t('hourenso.fields.issues')} value={report.houkoku?.issues} />
-              <FieldRow label={t('hourenso.fields.nextSteps')} value={report.houkoku?.nextSteps} />
+              <FieldRow label={t('hourenso.fields.currentStatus')} value={report.houkoku?.currentStatus} glossaryTerms={glossaryTerms} />
+              <FieldRow label={t('hourenso.fields.progress')} value={report.houkoku?.progress} glossaryTerms={glossaryTerms} />
+              <FieldRow label={t('hourenso.fields.issues')} value={report.houkoku?.issues} glossaryTerms={glossaryTerms} />
+              <FieldRow label={t('hourenso.fields.nextSteps')} value={report.houkoku?.nextSteps} glossaryTerms={glossaryTerms} />
             </HourensoSection>
 
             {/* Renraku */}
             <HourensoSection title={t('hourenso.sections.renraku')} defaultOpen={false} accentColor="accent">
-              <FieldRow label={t('hourenso.fields.sharedInfo')} value={report.renraku?.sharedInformation} />
+              <FieldRow label={t('hourenso.fields.sharedInfo')} value={report.renraku?.sharedInformation} glossaryTerms={glossaryTerms} />
             </HourensoSection>
 
             {/* Soudan */}
             <HourensoSection title={t('hourenso.sections.soudan')} defaultOpen={false} accentColor="warning">
-              <FieldRow label={t('hourenso.fields.consultTopic')} value={report.soudan?.topic} />
-              <FieldRow label={t('hourenso.fields.options')} value={report.soudan?.proposedOptions?.join(', ')} />
+              <FieldRow label={t('hourenso.fields.consultTopic')} value={report.soudan?.topic} glossaryTerms={glossaryTerms} />
+              <FieldRow label={t('hourenso.fields.options')} value={report.soudan?.proposedOptions?.join(', ')} glossaryTerms={glossaryTerms} />
               <FieldRow
                 label={t('hourenso.fields.deadline')}
                 value={report.soudan?.deadline ? new Date(report.soudan.deadline).toLocaleDateString() : '—'}
+                glossaryTerms={glossaryTerms}
               />
             </HourensoSection>
           </Card>

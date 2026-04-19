@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 
 export default function TranslateTooltip({
   children,
@@ -14,8 +15,8 @@ export default function TranslateTooltip({
     if (visible && triggerRef.current) {
       const rect = triggerRef.current.getBoundingClientRect()
       setPosition({
-        top: rect.top - 8,
-        left: rect.left + rect.width / 2,
+        top: rect.top + window.scrollY - 8, // Place above the trigger
+        left: rect.left + window.scrollX + rect.width / 2, // Centered horizontally
       })
     }
   }, [visible])
@@ -39,12 +40,16 @@ export default function TranslateTooltip({
         {children}
       </span>
 
-      {visible && hasTranslations && (
+      {visible && hasTranslations && createPortal(
         <span
+          style={{
+            top: `${position.top}px`,
+            left: `${position.left}px`,
+          }}
           className="
-            absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2
+            absolute z-[9999] -translate-x-1/2 -translate-y-full mb-2
             block bg-surface-dark text-text-inverse rounded-lg shadow-lg
-            px-4 py-3 min-w-[200px] max-w-[320px]
+            px-4 py-3 min-w-[200px] max-w-[320px] pointer-events-none
           "
           role="tooltip"
         >
@@ -75,7 +80,8 @@ export default function TranslateTooltip({
               </span>
             )}
           </span>
-        </span>
+        </span>,
+        document.body
       )}
     </span>
   )

@@ -11,8 +11,9 @@ import {
   Plus,
   Loader2,
 } from 'lucide-react'
-import { Card, Button } from '@/components/ui'
+import { Card, Button, TextHighlighter } from '@/components/ui'
 import { getDashboardStats } from '@/api/stats'
+import { getGlossary } from '@/api/glossary'
 
 export default function DashboardPage() {
   const { t } = useTranslation()
@@ -23,6 +24,12 @@ export default function DashboardPage() {
     queryKey: ['dashboardStats'],
     queryFn: getDashboardStats,
     refetchInterval: 30000,
+  })
+
+  // ── Fetch glossary terms ──
+  const { data: glossaryTerms = [] } = useQuery({
+    queryKey: ['glossary'],
+    queryFn: getGlossary,
   })
 
   const statsConfig = [
@@ -107,7 +114,7 @@ export default function DashboardPage() {
                   </p>
                   {report.houkoku?.currentStatus && (
                     <p className="text-sm text-text-muted mt-1 truncate">
-                      {report.houkoku.currentStatus}
+                      <TextHighlighter text={report.houkoku.currentStatus} glossaryTerms={glossaryTerms} />
                     </p>
                   )}
                   <div className="flex items-center gap-1.5 mt-2 text-xs text-text-muted">
