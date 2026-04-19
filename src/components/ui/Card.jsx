@@ -15,9 +15,9 @@ export default function Card({
   return (
     <div
       className={`
-        bg-surface-raised rounded-xl border border-border shadow-sm
+        glass-panel rounded-xl
         ${paddings[padding]}
-        ${hover ? 'stat-card hover:border-border-hover cursor-pointer' : ''}
+        ${hover ? 'stat-card cursor-pointer' : ''}
         ${className}
       `}
       {...props}

@@ -39,6 +39,9 @@ export const authFetch = async (endpoint, options = {}) => {
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      window.dispatchEvent(new Event('auth-error'));
+    }
     const errorData = await response.json().catch(() => ({
       message: `Request failed with status ${response.status}`,
     }));

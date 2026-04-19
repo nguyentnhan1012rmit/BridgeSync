@@ -30,7 +30,7 @@ export default function MainLayout() {
   const [mobileOpen, setMobileOpen] = useState(false)
 
   return (
-    <div className="flex h-screen bg-surface overflow-hidden">
+    <div className="flex h-screen bg-transparent overflow-hidden">
       {/* Mobile overlay */}
       {mobileOpen && (
         <div
@@ -42,7 +42,7 @@ export default function MainLayout() {
       {/* Sidebar */}
       <aside
         className={`
-          fixed inset-y-0 left-0 z-50 flex flex-col w-64 bg-surface-raised border-r border-border
+          fixed inset-y-0 left-0 z-40 flex flex-col w-64 bg-surface-base/70 backdrop-blur-xl border-r border-border
           transition-transform duration-300 ease-in-out
           lg:static lg:translate-x-0
           ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
@@ -75,8 +75,8 @@ export default function MainLayout() {
               className={({ isActive }) => `
                 flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
                 ${isActive
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-text-secondary hover:bg-surface-alt hover:text-text-primary'
+                  ? 'bg-primary/20 text-primary shadow-sm shadow-primary/10'
+                  : 'text-text-secondary hover:bg-white/5 hover:text-text-primary'
                 }
               `}
             >
@@ -114,7 +114,7 @@ export default function MainLayout() {
       {/* Main content wrapper */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Topbar */}
-        <header className="flex items-center justify-between px-4 lg:px-8 h-16 bg-surface-raised border-b border-border shrink-0">
+        <header className="flex items-center justify-between px-4 lg:px-8 h-16 topbar shrink-0 relative z-10">
           <button
             onClick={() => setMobileOpen(true)}
             className="p-2 lg:hidden text-text-secondary hover:bg-surface-alt rounded-lg"

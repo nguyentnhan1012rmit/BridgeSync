@@ -39,16 +39,15 @@ export default function Modal({ open, onClose, title, children, maxWidth = 'max-
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/25 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-black/60 backdrop-blur-md"
         onClick={onClose}
         style={{ animation: 'fadeIn 120ms ease' }}
       />
 
       {/* Panel */}
       <div
-        className="relative w-full bg-surface-raised rounded-xl border border-border
-          shadow-xl overflow-hidden"
-        style={{ maxWidth: resolvedWidth, animation: 'slideUp 200ms cubic-bezier(0.25, 0.1, 0.25, 1)' }}
+        className="relative w-full glass-panel-raised rounded-xl overflow-hidden"
+        style={{ maxWidth: resolvedWidth, animation: 'slideUp 300ms cubic-bezier(0.2, 0.8, 0.2, 1)' }}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-border">
