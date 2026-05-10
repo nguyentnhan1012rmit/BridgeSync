@@ -91,17 +91,19 @@ export default function MainLayout() {
         {/* User Profile */}
         <div className="p-4 border-t border-border shrink-0">
           <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-9 h-9 rounded-full bg-primary/10 text-primary font-bold text-sm shrink-0">
-              {user?.name?.charAt(0) || 'U'}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-text-primary truncate">
-                {user?.name || 'Guest'}
-              </p>
-              <p className="text-xs text-text-muted truncate">
-                {user?.role || 'User'}
-              </p>
-            </div>
+            <NavLink to="/profile" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 flex-1 min-w-0 hover:opacity-80 transition-opacity">
+              <div className="flex items-center justify-center w-9 h-9 rounded-full bg-primary/10 text-primary font-bold text-sm shrink-0">
+                {user?.name?.charAt(0) || 'U'}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-text-primary truncate">
+                  {user?.name || 'Guest'}
+                </p>
+                <p className="text-xs text-text-muted truncate">
+                  {user?.role || 'User'}
+                </p>
+              </div>
+            </NavLink>
             <button
               onClick={logout}
               title="Log Out"

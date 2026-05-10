@@ -140,5 +140,14 @@
     "title": "エラーが発生しました",
     "description": "BridgeSyncで予期しないUIエラーが発生しました。ページを再読み込みすると通常復旧します。",
     "reload": "再読み込み"
+  },
+  "auth": {
+    "name": "名前",
+    "email": "メール",
+    "role": "役割"
+  },
+  "profile": {
+    "title": "プロフィール",
+    "subtitle": "アカウント情報"
   }
 }

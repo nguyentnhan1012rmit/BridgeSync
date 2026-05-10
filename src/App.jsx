@@ -13,6 +13,7 @@ const TasksPage = lazy(() => import('@/pages/TasksPage'))
 const HourensoPage = lazy(() => import('@/pages/HourensoPage'))
 const GlossaryPage = lazy(() => import('@/pages/GlossaryPage'))
 const SettingsPage = lazy(() => import('@/pages/SettingsPage'))
+const ProfilePage = lazy(() => import('@/pages/ProfilePage'))
 const LoginPage = lazy(() => import('@/pages/LoginPage'))
 const SignupPage = lazy(() => import('@/pages/SignupPage'))
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'))
@@ -41,6 +42,7 @@ export default function App() {
               <Route path="hourenso" element={<HourensoPage />} />
               <Route path="glossary" element={<GlossaryPage />} />
               <Route path="settings" element={<SettingsPage />} />
+              <Route path="profile" element={<ProfilePage />} />
             </Route>
 
             <Route path="*" element={<NotFoundPage />} />

@@ -11,10 +11,21 @@ const addGlossaryTermSchema = z.object({
   }),
 });
 
+const updateGlossaryTermSchema = z.object({
+  body: z.object({
+    baseTerm: z.string().min(1).max(500).optional(),
+    translations: z.object({
+      en: z.string().min(1).optional(),
+      vi: z.string().min(1).optional(),
+      ja: z.string().min(1).optional(),
+    }).optional(),
+  }),
+});
+
 const importGlossarySchema = z.object({
   body: z.object({
     terms: z.array(z.any()).min(1, 'Import requires a non-empty terms array').max(500),
   }),
 });
 
-module.exports = { addGlossaryTermSchema, importGlossarySchema };
+module.exports = { addGlossaryTermSchema, updateGlossaryTermSchema, importGlossarySchema };

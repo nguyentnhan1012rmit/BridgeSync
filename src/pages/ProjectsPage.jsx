@@ -2,11 +2,11 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, Users, Calendar, Trash2, Loader2, AlertCircle, FolderKanban, Languages, ChevronDown, UserPlus, UserMinus } from 'lucide-react'
+import { Plus, Users, Calendar, Trash2, Pencil, Loader2, AlertCircle, FolderKanban, Languages, ChevronDown, UserPlus, UserMinus } from 'lucide-react'
 import { Card, Button, Modal, TextHighlighter } from '@/components/ui'
 import { useAuth } from '@/hooks/useAuth'
-import { getProjects, createProject, deleteProject, getProjectMembers, addProjectMember, removeProjectMember } from '@/api/projects'
-import { getGlossary } from '@/api/glossary'
+import { getProjects, createProject, updateProject, deleteProject, getProjectMembers, addProjectMember, removeProjectMember } from '@/api/projects'
+import { getAllGlossaryTerms } from '@/api/glossary'
 import { getUsers } from '@/api/auth'
 
 const statusColors = {
@@ -26,6 +26,7 @@ export default function ProjectsPage() {
   const queryClient = useQueryClient()
   const [showCreate, setShowCreate] = useState(false)
   const [manageProject, setManageProject] = useState(null)
+  const [editProject, setEditProject] = useState(null)
   const [selectedMemberId, setSelectedMemberId] = useState('')
   const [form, setForm] = useState({ name: '', description: '', preferredLanguage: 'ja' })
 
@@ -37,7 +38,7 @@ export default function ProjectsPage() {
   // ── Fetch glossary terms ──
   const { data: glossaryTerms = [] } = useQuery({
     queryKey: ['glossary'],
-    queryFn: getGlossary,
+    queryFn: getAllGlossaryTerms,
   })
 
   const { data: allUsers = [] } = useQuery({
@@ -93,6 +94,16 @@ export default function ProjectsPage() {
     onError: (err) => toast.error(err?.message || 'Failed to remove member'),
   })
 
+  const updateMutation = useMutation({
+    mutationFn: ({ projectId, projectData }) => updateProject(projectId, projectData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
+      setEditProject(null)
+      toast.success('Project updated')
+    },
+    onError: (err) => toast.error(err?.message || 'Failed to update project'),
+  })
+
   const handleCreate = (e) => {
     e.preventDefault()
     if (!form.name.trim()) return
@@ -111,6 +122,20 @@ export default function ProjectsPage() {
 
   const memberIdSet = new Set(projectMembers.map((member) => member._id))
   const availableUsers = allUsers.filter((candidate) => !memberIdSet.has(candidate._id))
+
+  const openEditProject = (project) => {
+    setEditProject(project)
+    setForm({ name: project.name, description: project.description || '', preferredLanguage: project.preferredLanguage || 'ja' })
+  }
+
+  const handleUpdate = (e) => {
+    e.preventDefault()
+    if (!editProject || !form.name.trim()) return
+    updateMutation.mutate({
+      projectId: editProject._id,
+      projectData: { name: form.name, description: form.description, preferredLanguage: form.preferredLanguage },
+    })
+  }
 
   return (
     <div style={{ maxWidth: '76rem' }}>
@@ -186,25 +211,37 @@ export default function ProjectsPage() {
                     <Languages size={11} />
                     {languageLabels[project.preferredLanguage] || 'JA'}
                   </span>
-                  {user?.role === 'PM' && (
+                  {(user?.role === 'PM' || user?.role === 'BrSE') && (
                     <>
                       <button
-                        onClick={(e) => { e.stopPropagation(); setManageProject(project) }}
+                        onClick={(e) => { e.stopPropagation(); openEditProject(project) }}
                         style={{ padding: '4px', borderRadius: '6px', cursor: 'pointer', border: 'none', background: 'transparent', transition: 'all 150ms' }}
                         className="text-text-muted hover:text-primary hover:bg-primary/8"
-                        title="Manage members"
+                        title="Edit project"
                       >
-                        <UserPlus size={14} />
+                        <Pencil size={14} />
                       </button>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); handleDelete(project._id) }}
-                        disabled={deleteMutation.isPending}
-                        style={{ padding: '4px', borderRadius: '6px', cursor: 'pointer', border: 'none', background: 'transparent', transition: 'all 150ms' }}
-                        className="text-text-muted hover:text-danger hover:bg-danger/8"
-                        title={t('common.delete')}
-                      >
-                        <Trash2 size={14} />
-                      </button>
+                      {user?.role === 'PM' && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setManageProject(project) }}
+                          style={{ padding: '4px', borderRadius: '6px', cursor: 'pointer', border: 'none', background: 'transparent', transition: 'all 150ms' }}
+                          className="text-text-muted hover:text-primary hover:bg-primary/8"
+                          title="Manage members"
+                        >
+                          <UserPlus size={14} />
+                        </button>
+                      )}
+                      {user?.role === 'PM' && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleDelete(project._id) }}
+                          disabled={deleteMutation.isPending}
+                          style={{ padding: '4px', borderRadius: '6px', cursor: 'pointer', border: 'none', background: 'transparent', transition: 'all 150ms' }}
+                          className="text-text-muted hover:text-danger hover:bg-danger/8"
+                          title={t('common.delete')}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
                     </>
                   )}
                 </div>
@@ -354,6 +391,63 @@ export default function ProjectsPage() {
             )}
           </div>
         </div>
+      </Modal>
+
+      {/* Edit project modal */}
+      <Modal open={Boolean(editProject)} onClose={() => setEditProject(null)} title={t('common.edit') + ' ' + t('projects.title').toLowerCase().slice(0, -1)}>
+        <form onSubmit={handleUpdate} className="space-y-3.5">
+          <div>
+            <label className="block text-sm font-medium text-text-secondary mb-1">
+              {t('projects.projectName')} *
+            </label>
+            <input
+              type="text"
+              required
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              className="form-input"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-text-secondary mb-1">
+              {t('projects.description')}
+            </label>
+            <textarea
+              rows={3}
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              className="form-input resize-none"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-text-secondary mb-1">
+              {t('projects.preferredLanguage')}
+            </label>
+            <div className="relative">
+              <select
+                value={form.preferredLanguage}
+                onChange={(e) => setForm({ ...form, preferredLanguage: e.target.value })}
+                className="form-input appearance-none pr-9 cursor-pointer"
+              >
+                <option value="ja">{t('language.ja')}</option>
+                <option value="en">{t('language.en')}</option>
+                <option value="vi">{t('language.vi')}</option>
+              </select>
+              <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+            </div>
+          </div>
+          {updateMutation.isError && (
+            <p className="text-sm text-danger">{updateMutation.error?.message}</p>
+          )}
+          <div className="flex items-center justify-end gap-2 pt-1">
+            <Button variant="ghost" type="button" onClick={() => setEditProject(null)}>
+              {t('common.cancel')}
+            </Button>
+            <Button type="submit" disabled={updateMutation.isPending}>
+              {updateMutation.isPending ? t('common.loading') : t('common.save')}
+            </Button>
+          </div>
+        </form>
       </Modal>
     </div>
   )

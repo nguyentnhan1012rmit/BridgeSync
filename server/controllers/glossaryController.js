@@ -178,8 +178,66 @@ const importGlossaryTerms = async (req, res) => {
     }
 }
 
+// @route PUT /api/glossary/:termId
+const updateGlossaryTerm = async (req, res) => {
+    try {
+        const { baseTerm, translations } = req.body;
+        const term = await ITGlossary.findById(req.params.termId);
+
+        if (!term) {
+            return sendError(res, 404, 'Glossary term not found', 'NOT_FOUND');
+        }
+
+        if (baseTerm !== undefined) {
+            const newNormalized = normalizeTerm(baseTerm);
+            if (newNormalized !== term.normalizedBaseTerm) {
+                const duplicate = await ITGlossary.findOne({
+                    normalizedBaseTerm: newNormalized,
+                    _id: { $ne: term._id },
+                });
+                if (duplicate) {
+                    return sendError(res, 400, 'Another term with this name already exists.', 'DUPLICATE_GLOSSARY_TERM');
+                }
+            }
+            term.baseTerm = baseTerm.trim();
+            term.normalizedBaseTerm = newNormalized;
+        }
+
+        if (translations) {
+            if (translations.en !== undefined) term.translations.en = translations.en.trim();
+            if (translations.vi !== undefined) term.translations.vi = translations.vi.trim();
+            if (translations.ja !== undefined) term.translations.ja = translations.ja.trim();
+        }
+
+        const updated = await term.save();
+        emitEvent('glossary:changed', { action: 'update', term: updated });
+        res.json(updated);
+    } catch (error) {
+        sendServerError(res, error);
+    }
+}
+
+// @route DELETE /api/glossary/:termId
+const deleteGlossaryTerm = async (req, res) => {
+    try {
+        const term = await ITGlossary.findById(req.params.termId);
+
+        if (!term) {
+            return sendError(res, 404, 'Glossary term not found', 'NOT_FOUND');
+        }
+
+        await term.deleteOne();
+        emitEvent('glossary:changed', { action: 'delete', termId: req.params.termId });
+        res.json({ message: 'Term deleted successfully' });
+    } catch (error) {
+        sendServerError(res, error);
+    }
+}
+
 module.exports = {
     getGlossary,
     addGlossaryTerm,
+    updateGlossaryTerm,
+    deleteGlossaryTerm,
     importGlossaryTerms
 }

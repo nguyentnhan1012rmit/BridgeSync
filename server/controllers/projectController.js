@@ -69,6 +69,24 @@ const createProject = async (req, res) => {
     }
 }
 
+// @route   PUT /api/projects/:projectId
+const updateProject = async (req, res) => {
+    try {
+        const { name, description, preferredLanguage } = req.body;
+
+        if (name !== undefined) req.project.name = name.trim();
+        if (description !== undefined) req.project.description = description;
+        if (preferredLanguage !== undefined) req.project.preferredLanguage = preferredLanguage;
+
+        const updatedProject = await req.project.save();
+        await updatedProject.populate('members', 'name email');
+        emitEvent('project:updated', { project: updatedProject });
+        res.json(updatedProject)
+    } catch (error) {
+        sendServerError(res, error)
+    }
+}
+
 // @route DElETE /api/projects/:projectId
 const deleteProject = async (req, res) => {
     try {
@@ -160,6 +178,7 @@ const removeProjectMember = async (req, res) => {
 module.exports = {
     getProjects,
     createProject,
+    updateProject,
     deleteProject,
     getOneProject,
     getProjectMembers,

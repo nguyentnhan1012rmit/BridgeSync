@@ -49,3 +49,24 @@ export const importGlossaryTerms = (terms) => {
     body: JSON.stringify({ terms }),
   });
 };
+
+/**
+ * Update a glossary term.
+ * @route PUT /api/glossary/:termId
+ */
+export const updateGlossaryTerm = (termId, termData) => {
+  return authFetch(`/glossary/${termId}`, {
+    method: 'PUT',
+    body: JSON.stringify(termData),
+  });
+};
+
+/**
+ * Delete a glossary term.
+ * @route DELETE /api/glossary/:termId
+ */
+export const deleteGlossaryTerm = (termId) => {
+  return authFetch(`/glossary/${termId}`, {
+    method: 'DELETE',
+  });
+};

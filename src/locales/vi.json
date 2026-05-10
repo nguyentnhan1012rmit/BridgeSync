@@ -140,5 +140,14 @@
     "title": "Đã xảy ra lỗi",
     "description": "BridgeSync gặp lỗi giao diện không mong muốn. Tải lại trang thường giải quyết vấn đề.",
     "reload": "Tải lại"
+  },
+  "auth": {
+    "name": "Tên",
+    "email": "Email",
+    "role": "Vai trò"
+  },
+  "profile": {
+    "title": "Hồ sơ",
+    "subtitle": "Thông tin tài khoản của bạn"
   }
 }

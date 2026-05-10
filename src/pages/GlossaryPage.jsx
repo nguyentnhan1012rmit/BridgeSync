@@ -2,10 +2,10 @@ import { useDeferredValue, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Search, Plus, Loader2, AlertCircle, BookOpen, Upload, CheckCircle2 } from 'lucide-react'
+import { Search, Plus, Loader2, AlertCircle, BookOpen, Upload, CheckCircle2, Pencil, Trash2 } from 'lucide-react'
 import { Card, Button, Modal } from '@/components/ui'
 import { useAuth } from '@/hooks/useAuth'
-import { getGlossary, addGlossaryTerm, importGlossaryTerms } from '@/api/glossary'
+import { getGlossary, addGlossaryTerm, updateGlossaryTerm, deleteGlossaryTerm, importGlossaryTerms } from '@/api/glossary'
 
 const normalizeHeader = (value) => String(value || '').trim().toLowerCase().replace(/[\s_-]+/g, '')
 
@@ -110,6 +110,7 @@ export default function GlossaryPage() {
   const [page, setPage] = useState(1)
   const [showAdd, setShowAdd] = useState(false)
   const [form, setForm] = useState({ baseTerm: '', en: '', vi: '', ja: '' })
+  const [editingTerm, setEditingTerm] = useState(null)
   const [importResult, setImportResult] = useState(null)
   const deferredSearch = useDeferredValue(search)
 
@@ -145,6 +146,28 @@ export default function GlossaryPage() {
     onError: (err) => toast.error(err?.message || 'Import failed'),
   })
 
+  const editMutation = useMutation({
+    mutationFn: ({ termId, termData }) => updateGlossaryTerm(termId, termData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['glossary'] })
+      queryClient.invalidateQueries({ queryKey: ['glossaryPage'] })
+      setEditingTerm(null)
+      setForm({ baseTerm: '', en: '', vi: '', ja: '' })
+      toast.success('Term updated')
+    },
+    onError: (err) => toast.error(err?.message || 'Failed to update term'),
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteGlossaryTerm,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['glossary'] })
+      queryClient.invalidateQueries({ queryKey: ['glossaryPage'] })
+      toast.success('Term deleted')
+    },
+    onError: (err) => toast.error(err?.message || 'Failed to delete term'),
+  })
+
   const handleAdd = (e) => {
     e.preventDefault()
     if (!form.baseTerm.trim()) return
@@ -177,6 +200,26 @@ export default function GlossaryPage() {
       importMutation.mutate(terms)
     } catch {
       setImportResult({ imported: 0, skipped: 0, invalid: 0, message: t('glossary.importFailed') })
+    }
+  }
+
+  const openEditTerm = (item) => {
+    setEditingTerm(item)
+    setForm({ baseTerm: item.baseTerm, en: item.translations?.en || '', vi: item.translations?.vi || '', ja: item.translations?.ja || '' })
+  }
+
+  const handleEditSubmit = (e) => {
+    e.preventDefault()
+    if (!editingTerm) return
+    editMutation.mutate({
+      termId: editingTerm._id,
+      termData: { baseTerm: form.baseTerm, translations: { en: form.en, vi: form.vi, ja: form.ja } },
+    })
+  }
+
+  const handleDeleteTerm = (termId) => {
+    if (window.confirm('Delete this glossary term?')) {
+      deleteMutation.mutate(termId)
     }
   }
 
@@ -270,6 +313,7 @@ export default function GlossaryPage() {
                   <th>{t('glossary.english')}</th>
                   <th>{t('glossary.vietnamese')}</th>
                   <th>{t('glossary.japanese')}</th>
+                  {user?.role === 'BrSE' && <th style={{ width: '80px' }}></th>}
                 </tr>
               </thead>
               <tbody>
@@ -279,11 +323,23 @@ export default function GlossaryPage() {
                     <td className="text-text-primary">{item.translations?.en}</td>
                     <td className="text-text-primary">{item.translations?.vi}</td>
                     <td className="text-text-primary">{item.translations?.ja}</td>
+                    {user?.role === 'BrSE' && (
+                      <td>
+                        <div className="flex items-center gap-1">
+                          <button type="button" onClick={() => openEditTerm(item)} className="p-1.5 rounded-md text-text-muted hover:text-primary hover:bg-primary/8" title="Edit">
+                            <Pencil size={13} />
+                          </button>
+                          <button type="button" onClick={() => handleDeleteTerm(item._id)} disabled={deleteMutation.isPending} className="p-1.5 rounded-md text-text-muted hover:text-danger hover:bg-danger/8" title="Delete">
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))}
                 {glossaryData.length === 0 && (
                   <tr>
-                    <td colSpan={4}>
+                    <td colSpan={user?.role === 'BrSE' ? 5 : 4}>
                       <div className="empty-state py-10">
                         <BookOpen size={24} />
                         <p className="text-sm">{t('common.noData')}</p>
@@ -392,6 +448,39 @@ export default function GlossaryPage() {
             </Button>
             <Button type="submit" disabled={addMutation.isPending}>
               {addMutation.isPending ? t('common.loading') : t('common.create')}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Edit term modal */}
+      <Modal open={Boolean(editingTerm)} onClose={() => setEditingTerm(null)} title={t('common.edit') + ' ' + t('glossary.term').toLowerCase()}>
+        <form onSubmit={handleEditSubmit} className="space-y-3.5">
+          <div>
+            <label className="block text-sm font-medium text-text-secondary mb-1">
+              {t('glossary.term')} *
+            </label>
+            <input type="text" required value={form.baseTerm} onChange={(e) => setForm({ ...form, baseTerm: e.target.value })} className="form-input" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-text-secondary mb-1">{t('glossary.english')} *</label>
+            <input type="text" required value={form.en} onChange={(e) => setForm({ ...form, en: e.target.value })} className="form-input" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-text-secondary mb-1">{t('glossary.vietnamese')} *</label>
+            <input type="text" required value={form.vi} onChange={(e) => setForm({ ...form, vi: e.target.value })} className="form-input" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-text-secondary mb-1">{t('glossary.japanese')} *</label>
+            <input type="text" required value={form.ja} onChange={(e) => setForm({ ...form, ja: e.target.value })} className="form-input" />
+          </div>
+          {editMutation.isError && (
+            <p className="text-sm text-danger">{editMutation.error?.message}</p>
+          )}
+          <div className="flex items-center justify-end gap-2 pt-1">
+            <Button variant="ghost" type="button" onClick={() => setEditingTerm(null)}>{t('common.cancel')}</Button>
+            <Button type="submit" disabled={editMutation.isPending}>
+              {editMutation.isPending ? t('common.loading') : t('common.save')}
             </Button>
           </div>
         </form>

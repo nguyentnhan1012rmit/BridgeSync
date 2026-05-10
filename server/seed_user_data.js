@@ -1,5 +1,6 @@
 require('dotenv').config({ path: '.env' });
 const mongoose = require('mongoose');
+const { logger } = require('./utils/logger');
 
 const User = require('./models/Users');
 const Project = require('./models/Projects');
@@ -10,22 +11,22 @@ const ITGlossary = require('./models/ITGlossary');
 
 async function seedData() {
   await mongoose.connect(process.env.DATABASE_URI);
-  console.log('Connected to DB for seeding');
+  logger.info('Connected to DB for seeding');
   
   const testUser = await User.findOne({ email: 'testing@test.com' });
   if (!testUser) {
-    console.log('Please register testing@test.com first');
+    logger.error('Please register testing@test.com first');
     process.exit(1);
   }
   
-  console.log('User found! Creating mock data...');
+  logger.info('User found! Creating mock data...');
   
   // Create 3 Projects
   const project1 = await Project.create({ name: 'Alpha Migration', description: 'Migrate legacy infrastructure to AWS', status: 'active', preferredLanguage: 'ja', members: [testUser._id] });
   const project2 = await Project.create({ name: 'Beta Launch', description: 'Prepare for Q3 release', status: 'active', preferredLanguage: 'en', members: [testUser._id] });
   await Project.create({ name: 'Archive Zeta', description: 'Internal tool deprecation', status: 'archived', preferredLanguage: 'vi', members: [testUser._id] });
   
-  console.log('Projects created.');
+  logger.info('Projects created.');
   
   // Create Tasks for Project 1
   await Task.create({ projectId: project1._id, title: 'Setup VPC', description: 'Configure AWS VPC for the new environment', status: 'ongoing', assigneeId: testUser._id, reporterId: testUser._id });
@@ -35,7 +36,7 @@ async function seedData() {
   await Task.create({ projectId: project2._id, title: 'Design Final Review', description: 'Review UI mockups', status: 'completed', assigneeId: testUser._id, reporterId: testUser._id });
   await Task.create({ projectId: project2._id, title: 'QA Testing Phase 1', description: 'Initial bug sweeps', status: 'ongoing', assigneeId: testUser._id, reporterId: testUser._id });
   
-  console.log('Tasks created.');
+  logger.info('Tasks created.');
   
   // Create Hourenso Reports
   await Hourenso.create({
@@ -68,7 +69,7 @@ async function seedData() {
     }
   });
   
-  console.log('Hourenso reports created.');
+  logger.info('Hourenso reports created.');
   
   // Check glossary
   const gloss = await ITGlossary.findOne({ baseTerm: 'API' });
@@ -79,11 +80,11 @@ async function seedData() {
       addedBy: testUser._id,
       useCount: 15
     });
-    console.log('Glossary seeded.');
+    logger.info('Glossary seeded.');
   }
 
-  console.log('Data seeding completed fully!');
+  logger.info('Data seeding completed fully!');
   await mongoose.disconnect();
 }
 
-seedData().catch(console.error);
+seedData().catch((err) => logger.error({ err }, 'Seed script failed'));

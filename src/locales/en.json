@@ -140,5 +140,14 @@
     "title": "Something went wrong",
     "description": "BridgeSync hit an unexpected UI error. Reloading usually restores the session.",
     "reload": "Reload"
+  },
+  "auth": {
+    "name": "Name",
+    "email": "Email",
+    "role": "Role"
+  },
+  "profile": {
+    "title": "Profile",
+    "subtitle": "Your account information"
   }
 }

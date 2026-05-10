@@ -30,7 +30,7 @@ const apiLimiter = rateLimit({
 
 app.use(helmet());
 app.use(requestLogger);
-app.use(cors({ origin: allowedOrigins }));
+app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json({ limit: '1mb' }));
 app.use('/api', apiLimiter);
 
