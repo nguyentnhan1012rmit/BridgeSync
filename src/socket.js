@@ -1,8 +1,10 @@
 import { io } from 'socket.io-client';
 
-// In development, Vite proxies /socket.io to the backend server (port 3000).
+// In development, connect directly to the backend server (port 3000) to avoid Vite proxy errors.
 // In production, the socket connects to the same origin.
-const socket = io({
+const socketUrl = import.meta.env.DEV ? 'http://localhost:3000' : undefined;
+
+const socket = io(socketUrl, {
   autoConnect: false,
   reconnection: true,
   reconnectionAttempts: 10,
