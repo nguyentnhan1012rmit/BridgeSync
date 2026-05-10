@@ -162,13 +162,8 @@ BridgeSync/
 git clone https://github.com/nguyentnhan1012rmit/BridgeSync.git
 cd BridgeSync
 
-# Install frontend dependencies
+# Install dependencies
 npm install
-
-# Install backend dependencies
-cd server
-npm install
-cd ..
 ```
 
 ### 2. Configure environment variables
