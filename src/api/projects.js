@@ -41,10 +41,36 @@ export const deleteProject = (projectId) => {
 };
 
 /**
+ * Update a project by ID.
+ * @route PUT /api/projects/:projectId
+ * @param {string} projectId
+ * @param {Object} projectData - { name?, description?, preferredLanguage? }
+ */
+export const updateProject = (projectId, projectData) => {
+  return authFetch(`/projects/${projectId}`, {
+    method: 'PUT',
+    body: JSON.stringify(projectData),
+  });
+};
+
+/**
  * Fetch all members of a specific project.
  * @route GET /api/projects/:projectId/members
  * @param {string} projectId
  */
 export const getProjectMembers = (projectId) => {
   return authFetch(`/projects/${projectId}/members`);
+};
+
+export const addProjectMember = (projectId, userId) => {
+  return authFetch(`/projects/${projectId}/members`, {
+    method: 'POST',
+    body: JSON.stringify({ userId }),
+  });
+};
+
+export const removeProjectMember = (projectId, userId) => {
+  return authFetch(`/projects/${projectId}/members/${userId}`, {
+    method: 'DELETE',
+  });
 };

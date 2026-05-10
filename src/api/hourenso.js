@@ -23,3 +23,16 @@ export const createReport = (reportData) => {
     body: JSON.stringify(reportData),
   });
 };
+
+export const updateReport = (reportId, reportData) => {
+  return authFetch(`/hourenso/reports/${reportId}`, {
+    method: 'PUT',
+    body: JSON.stringify(reportData),
+  });
+};
+
+export const deleteReport = (reportId) => {
+  return authFetch(`/hourenso/reports/${reportId}`, {
+    method: 'DELETE',
+  });
+};

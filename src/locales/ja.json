@@ -36,6 +36,7 @@
     "projectName": "プロジェクト名",
     "description": "説明",
     "client": "クライアント",
+    "preferredLanguage": "優先言語",
     "status": "ステータス",
     "dueDate": "期限",
     "members": "メンバー",
@@ -93,12 +94,29 @@
       "consultTopic": "相談事項",
       "options": "選択肢・提案",
       "deadline": "決定期限"
+    },
+    "quality": {
+      "title": "報連相品質チェック",
+      "subtitle": "送信前のテンプレート確認",
+      "ready": "このレポートは構成が整っており、送信できます。",
+      "missingRequired": "完全な報告には「{{field}}」が必要です。",
+      "statusTooShort": "現在の状況が短すぎます。関係者が理解できる背景を追加してください。",
+      "progressNeedsEvidence": "進捗は数値、完了率、完了した作業を入れると明確になります。",
+      "issueNeedsNextStep": "課題がある場合は、具体的な次の対応または担当者を追加してください。",
+      "soudanNeedsTopic": "判断依頼には明確な相談事項が必要です。",
+      "soudanNeedsOptions": "相談には少なくとも2つの選択肢があると分かりやすくなります。",
+      "soudanNeedsDeadline": "関係者に判断を依頼する場合は、決定期限を追加してください。",
+      "renrakuOptional": "チーム全体に共有すべき情報があれば連絡欄に追加してください。"
     }
   },
   "glossary": {
     "title": "IT用語集",
     "searchTerms": "用語を検索...",
     "addTerm": "用語を追加",
+    "importTerms": "用語をインポート",
+    "importResult": "{{imported}} 件の用語をインポートしました。{{skipped}} 行をスキップしました。",
+    "importFailed": "用語のインポートに失敗しました。",
+    "importNoRows": "選択したファイルに用語が見つかりません。",
     "term": "用語",
     "english": "英語",
     "vietnamese": "ベトナム語",
@@ -109,5 +127,27 @@
     "en": "English",
     "vi": "Tiếng Việt",
     "ja": "日本語"
+  },
+  "settings": {
+    "subtitle": "設定を変更する",
+    "languageDescription": "お好みのインターフェース言語を選択してください"
+  },
+  "activity": {
+    "submittedReport": "がレポートを提出しました",
+    "forProject": "プロジェクト"
+  },
+  "error": {
+    "title": "エラーが発生しました",
+    "description": "BridgeSyncで予期しないUIエラーが発生しました。ページを再読み込みすると通常復旧します。",
+    "reload": "再読み込み"
+  },
+  "auth": {
+    "name": "名前",
+    "email": "メール",
+    "role": "役割"
+  },
+  "profile": {
+    "title": "プロフィール",
+    "subtitle": "アカウント情報"
   }
 }

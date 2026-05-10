@@ -16,15 +16,23 @@ The MVP is built with a modern Full-Stack **MERN** architecture:
 * **Core:** React (v19) + Vite (v8)
 * **Styling:** Tailwind CSS (v4) with custom design system (oklch color palette, glassmorphism, micro-animations)
 * **State & Caching:** TanStack React Query (v5) + React Context (Auth)
+* **Real-Time:** Socket.io client with JWT-authenticated connections
 * **Internationalization (i18n):** react-i18next (EN / VI / JA)
+* **Notifications:** Sonner toast notifications
 * **Icons:** Lucide React
-* **Excel Export:** SheetJS (xlsx)
+* **Excel Import/Export:** ExcelJS
+* **Testing:** Vitest + Testing Library (18 unit tests)
 
 **Backend:**
 * **Server:** Node.js + Express (v5)
 * **Database:** MongoDB Atlas + Mongoose (v9)
 * **Authentication:** JSON Web Tokens (JWT) & bcrypt
+* **Real-Time:** Socket.io with JWT-authenticated handshake
+* **Validation:** Zod schemas on all API routes
+* **Security:** Helmet, CORS with credentials, express-rate-limit
+* **Logging:** Pino structured JSON logger
 * **External APIs:** DeepL API integration for dynamic translation fallback
+* **Testing:** Node.js native test runner (RBAC + API integration, 19 tests)
 
 ---
 
@@ -38,7 +46,7 @@ BridgeSync/
 │   │   ├── auth.js                   # Login / Register
 │   │   ├── projects.js               # CRUD for projects
 │   │   ├── tasks.js                  # CRUD for tasks
-│   │   ├── glossary.js               # GET/POST for glossary terms
+│   │   ├── glossary.js               # CRUD + import for glossary terms
 │   │   ├── hourenso.js               # GET/POST for hourenso reports
 │   │   ├── translate.js              # POST for translation
 │   │   └── stats.js                  # GET dashboard statistics
@@ -51,10 +59,11 @@ BridgeSync/
 │   │   │   ├── TextHighlighter.jsx   # Auto glossary term highlighter
 │   │   │   ├── TranslateTooltip.jsx  # Hover tooltip for glossary terms
 │   │   │   └── index.js              # Barrel exports
+│   │   ├── ErrorBoundary.jsx         # Global error boundary (i18n)
 │   │   ├── LanguageToggle.jsx        # EN/VI/JA language switcher
 │   │   └── ProtectedRoute.jsx        # Auth guard for routes
 │   ├── context/
-│   │   └── AuthContext.jsx           # JWT auth state (token + user)
+│   │   └── AuthContext.jsx           # JWT auth state (token + user + socket)
 │   ├── hooks/
 │   │   └── useAuth.js                # Auth hook (login/register/logout)
 │   ├── layouts/
@@ -65,13 +74,16 @@ BridgeSync/
 │   │   └── ja.json
 │   ├── pages/
 │   │   ├── DashboardPage.jsx         # Live stats + recent activity
-│   │   ├── ProjectsPage.jsx          # Project list + create/delete
+│   │   ├── ProjectsPage.jsx          # Project list + create/edit/delete
 │   │   ├── TasksPage.jsx             # Task board + status cycling
-│   │   ├── GlossaryPage.jsx          # IT glossary table + add term
-│   │   ├── HourensoPage.jsx          # Hourenso reports + Excel export
+│   │   ├── GlossaryPage.jsx          # IT glossary CRUD + CSV/XLSX import
+│   │   ├── HourensoPage.jsx          # Hourenso reports + quality check + Excel export
+│   │   ├── ProfilePage.jsx           # User profile page
+│   │   ├── NotFoundPage.jsx          # 404 catch-all page
 │   │   ├── LoginPage.jsx
 │   │   ├── SignupPage.jsx
 │   │   └── SettingsPage.jsx          # Language & display preferences
+│   ├── socket.js                     # Socket.io client (JWT auth)
 │   ├── App.jsx                       # Route definitions
 │   ├── main.jsx                      # Entry point (React Query + i18n)
 │   ├── i18n.js                       # i18next configuration
@@ -79,15 +91,23 @@ BridgeSync/
 ├── server/                           # Backend (Express + MongoDB)
 │   ├── controllers/
 │   │   ├── authController.js         # Register, Login, Logout, Refresh
-│   │   ├── projectController.js      # CRUD for projects
+│   │   ├── projectController.js      # CRUD for projects (incl. update)
 │   │   ├── taskController.js         # CRUD for tasks
-│   │   ├── glossaryController.js     # GET/POST for glossary
+│   │   ├── glossaryController.js     # CRUD + import for glossary
 │   │   ├── hourensoController.js     # GET/POST for hourenso reports
 │   │   ├── translationController.js  # Glossary-first + DeepL fallback
 │   │   └── statsController.js        # Aggregated dashboard statistics
 │   ├── middleware/
 │   │   ├── authMiddleware.js         # JWT protect + role-based authorize
-│   │   └── projectMiddleware.js      # Project-scoped access
+│   │   ├── projectMiddleware.js      # Project-scoped access
+│   │   ├── validate.js               # Zod validation middleware
+│   │   └── errorMiddleware.js        # 404 + global error handler
+│   ├── validators/                   # Zod schemas per resource
+│   │   ├── authValidator.js          # Register/login + password strength
+│   │   ├── projectValidator.js       # Create/update project
+│   │   ├── taskValidator.js          # Create/update/status tasks
+│   │   ├── glossaryValidator.js      # Add/update/import glossary
+│   │   └── hourensoValidator.js      # Create/update hourenso
 │   ├── models/
 │   │   ├── Users.js                  # User schema (name, email, role)
 │   │   ├── Projects.js              # Project schema (name, status, members)
@@ -104,12 +124,21 @@ BridgeSync/
 │   │   ├── hourensoRoutes.js
 │   │   ├── translationRoutes.js
 │   │   └── statsRoutes.js
+│   ├── tests/                        # RBAC and API integration tests
+│   ├── utils/
+│   │   ├── httpResponses.js          # Standardized API response helpers
+│   │   └── logger.js                 # Pino structured logger
+│   ├── app.js                        # Express app composition
+│   ├── socket.js                     # Socket.io server (JWT auth middleware)
 │   ├── seed_user_data.js             # Database seeding script (dev utility)
-│   ├── server.js                     # Express app entry point
+│   ├── server.js                     # Database connection + listen entry point
 │   ├── .env.example                  # Environment variable template
 │   └── .env                          # Environment variables (git-ignored)
 ├── public/
 │   └── favicon.svg                   # App favicon
+├── docs/
+│   ├── DEPLOYMENT.md                 # Cloud deployment guide
+│   └── UAT_CHECKLIST.md              # Demo/UAT checklist
 ├── package.json                      # Frontend dependencies + scripts
 ├── vite.config.js                    # Vite config with API proxy
 ├── eslint.config.js                  # ESLint configuration
@@ -160,6 +189,7 @@ REFRESH_TOKEN_SECRET=<your-refresh-token-secret>
 JWT_EXPIRES_IN=30m
 DEEPL_API_URL=https://api-free.deepl.com/v2/translate
 DEEPL_API_KEY=<your-deepl-api-key>
+FRONTEND_ORIGIN=http://localhost:5173
 ```
 
 ### 3. Start the development server
@@ -175,6 +205,50 @@ This starts both the Vite frontend (port 5173) and Express backend (port 3000) c
 ```bash
 npm run build
 ```
+
+### 5. Quality checks
+
+```bash
+# Lint (ESLint)
+npm run lint
+
+# Frontend unit tests (Vitest — 18 tests)
+npm run test:ui
+
+# Backend tests (RBAC + API integration — 19 tests)
+cd server && node --test tests/rbac.test.js tests/api.integration.test.js
+
+# Production build
+npm run build
+```
+
+### 6. QA and deployment references
+
+- Manual UAT/demo checklist: [`docs/UAT_CHECKLIST.md`](docs/UAT_CHECKLIST.md)
+- Role-based demo script and screenshot list: [`docs/ROLE_BASED_DEMO_SCRIPT.md`](docs/ROLE_BASED_DEMO_SCRIPT.md)
+- Technical and feature report draft: [`docs/TECHNICAL_AND_FEATURE_REPORT.md`](docs/TECHNICAL_AND_FEATURE_REPORT.md)
+- Cloud deployment guide: [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)
+
+---
+
+## ✅ Verification Status
+
+The application has passed all quality gates:
+
+| Check | Result |
+|-------|--------|
+| ESLint | ✅ 0 errors, 0 warnings |
+| Frontend unit tests (Vitest) | ✅ 18/18 pass (Button, Card, Modal, NotFoundPage) |
+| RBAC unit tests | ✅ 9/9 pass |
+| API integration tests | ✅ 10/10 pass |
+| Production build | ✅ Successful |
+
+**Key hardening completed:**
+- **Security:** Zod validation on all API routes, JWT-authenticated Socket.io, Helmet headers, CORS credentials, rate limiting, password strength enforcement (uppercase + digit)
+- **Code Quality:** Structured Pino logging (zero `console.log`), consistent API error shapes, dead code removed
+- **i18n:** All UI strings translated across 3 locales (EN/VI/JA), including error states
+- **Infrastructure:** `.env.example` template, `dist/` excluded from git, proper dependency classification
+- **Deployment Ready:** Verified and structurally ready for production deployment to Vercel (Frontend) and Render/Railway (Backend)
 
 ---
 
@@ -193,10 +267,10 @@ You can register new accounts via the Signup page (`/signup`). Choose from the f
 
 | Email | Password | Role |
 |-------|----------|------|
-| `pm@bridgesync.com` | `Test1234` | PM |
-| `brse@bridgesync.com` | `Test1234` | BrSE |
-| `dev@bridgesync.com` | `Test1234` | Developer |
-| `client@bridgesync.com` | `Test1234` | Japanese client |
+| `pm_final@bridgesync.com` | `Test1234` | PM |
+| `brse_final@bridgesync.com` | `Test1234` | BrSE |
+| `uat_dev@bridgesync.com` | `Test1234` | Developer |
+| `client_final@bridgesync.com` | `Test1234` | Japanese client |
 
 > **Note:** If these accounts don't exist yet in your database, create them via the Signup page at `/signup`. Select the appropriate role from the dropdown during registration.
 
@@ -208,7 +282,10 @@ You can register new accounts via the Signup page (`/signup`). Choose from the f
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
 | POST | `/api/auth/register` | Register new user | Public |
-| POST | `/api/auth/login` | Login (returns JWT) | Public |
+| POST | `/api/auth/login` | Login (returns access + refresh token) | Public |
+| POST | `/api/auth/refresh` | Refresh access token | Public |
+| POST | `/api/auth/logout` | Logout / revoke refresh token | Authenticated |
+| GET | `/api/auth/users` | List users for member assignment | PM, BrSE |
 
 ### Projects
 | Method | Endpoint | Description | Roles |
@@ -216,27 +293,37 @@ You can register new accounts via the Signup page (`/signup`). Choose from the f
 | GET | `/api/projects` | List projects (scoped by user) | All authenticated |
 | GET | `/api/projects/:id` | Get single project | All authenticated |
 | POST | `/api/projects` | Create project | PM, BrSE |
+| PUT | `/api/projects/:id` | Update project details | PM, BrSE |
 | DELETE | `/api/projects/:id` | Delete project | PM |
 | GET | `/api/projects/:id/members` | Get project members | All authenticated |
+| POST | `/api/projects/:id/members` | Add project member | PM |
+| DELETE | `/api/projects/:id/members/:userId` | Remove project member | PM |
 
 ### Tasks
 | Method | Endpoint | Description | Roles |
 |--------|----------|-------------|-------|
 | GET | `/api/tasks/:projectId` | Get tasks for a project | All authenticated |
 | POST | `/api/tasks` | Create task | PM, BrSE |
+| PUT | `/api/tasks/:taskId` | Edit task details | PM, BrSE |
 | PUT | `/api/tasks/:taskId/status` | Update task status | PM, BrSE, Developer |
+| DELETE | `/api/tasks/:taskId` | Delete task | PM, BrSE |
 
 ### IT Glossary
 | Method | Endpoint | Description | Roles |
 |--------|----------|-------------|-------|
-| GET | `/api/glossary` | List all glossary terms | All authenticated |
+| GET | `/api/glossary` | List/search glossary terms (paginated) | All authenticated |
 | POST | `/api/glossary` | Add new term | BrSE |
+| PUT | `/api/glossary/:termId` | Update a glossary term | BrSE |
+| DELETE | `/api/glossary/:termId` | Delete a glossary term | BrSE |
+| POST | `/api/glossary/import` | Import glossary terms from parsed CSV/XLSX rows | BrSE |
 
 ### Hourenso Reports
 | Method | Endpoint | Description | Roles |
 |--------|----------|-------------|-------|
 | GET | `/api/hourenso/:projectId` | Get reports by project | All authenticated |
 | POST | `/api/hourenso` | Create report | PM, BrSE, Developer |
+| PUT | `/api/hourenso/reports/:reportId` | Edit report | PM, BrSE, Developer |
+| DELETE | `/api/hourenso/reports/:reportId` | Delete report | PM, BrSE, Developer |
 
 ### Translation
 | Method | Endpoint | Description | Roles |
@@ -258,11 +345,15 @@ For a detailed breakdown of all features, please see the [FEATURES.md](./FEATURE
 1. **Bilingual Dual-View Interface** — Instant EN/VI/JA switching via react-i18next
 2. **Smart Hover-to-Translate** — Auto-detection and highlighting of IT glossary terms with trilingual tooltips
 3. **Select-to-Translate** — Select any text and get instant translations via IT Glossary + DeepL
-4. **Automated Hourenso Templates** — Structured 報連相 reporting with Excel export
-5. **Project Management with RBAC** — Role-based project creation, deletion, and scoping
-6. **Task Management with Status Cycling** — Inline status cycling (ongoing → completed → delayed)
-7. **Live Dashboard** — Aggregated stats with auto-refresh
-8. **Secure Backend** — JWT auth, role middleware, translation API proxying
+4. **Automated Hourenso Templates** — Structured 報連相 reporting with quality check and Excel export
+5. **Project Management with RBAC** — Full CRUD (create, edit, delete) with role-based scoping and project language preference
+6. **IT Glossary CRUD** — Add, edit, delete, and bulk import glossary terms with duplicate protection
+7. **Task Management with Status Cycling** — Create, edit, delete, and inline status cycling
+8. **Real-Time Updates** — Socket.io with JWT-authenticated connections for live project/task/glossary events
+9. **Live Dashboard** — Aggregated stats with auto-refresh and recent activity feed
+10. **User Profile** — View account information (name, email, role)
+11. **Secure Backend** — JWT auth, Zod validation, Pino logging, Helmet, rate limiting, CORS credentials
+12. **404 Catch-All** — Production-ready 404 page with navigation options
 
 ---
 
@@ -291,14 +382,21 @@ BridgeSync features a premium, modern design system built on Tailwind CSS v4:
 | View Dashboard | ✅ | ✅ | ✅ | ✅ |
 | View Projects | ✅ | ✅ | ✅ | ✅ |
 | Create Project | ✅ | ✅ | ❌ | ❌ |
+| Edit Project | ✅ | ✅ | ❌ | ❌ |
 | Delete Project | ✅ | ❌ | ❌ | ❌ |
+| Add/Remove Project Members | ✅ | ❌ | ❌ | ❌ |
 | View Tasks | ✅ | ✅ | ✅ | ✅ |
 | Create Task | ✅ | ✅ | ❌ | ❌ |
+| Edit/Delete Task | ✅ | ✅ | ❌ | ❌ |
 | Update Task Status | ✅ | ✅ | ✅ | ❌ |
 | View Glossary | ✅ | ✅ | ✅ | ✅ |
 | Add Glossary Term | ❌ | ✅ | ❌ | ❌ |
+| Edit/Delete Glossary Term | ❌ | ✅ | ❌ | ❌ |
+| Import Glossary Terms | ❌ | ✅ | ❌ | ❌ |
 | View Reports | ✅ | ✅ | ✅ | ✅ |
 | Create Report | ✅ | ✅ | ✅ | ❌ |
+| Edit/Delete Report | ✅ | ✅ | ✅ | ❌ |
 | Export Reports (Excel) | ✅ | ✅ | ✅ | ✅ |
+| View Profile | ✅ | ✅ | ✅ | ✅ |
 | Select-to-Translate | ✅ | ✅ | ✅ | ✅ |
 | Hover-to-Translate | ✅ | ✅ | ✅ | ✅ |

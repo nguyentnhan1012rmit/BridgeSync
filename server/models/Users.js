@@ -14,7 +14,7 @@ const userSchema = new mongoose.Schema({
         enum: ['en', 'vi', 'ja'],
         default: 'en'
     },
-    refreshToken: {
+    refreshTokenHash: {
         type: String,
         default: null
     }

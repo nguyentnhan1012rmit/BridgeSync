@@ -1,15 +1,23 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, Users, Calendar, Trash2, Loader2, AlertCircle, FolderKanban } from 'lucide-react'
+import { Plus, Users, Calendar, Trash2, Pencil, Loader2, AlertCircle, FolderKanban, Languages, ChevronDown, UserPlus, UserMinus } from 'lucide-react'
 import { Card, Button, Modal, TextHighlighter } from '@/components/ui'
 import { useAuth } from '@/hooks/useAuth'
-import { getProjects, createProject, deleteProject } from '@/api/projects'
-import { getGlossary } from '@/api/glossary'
+import { getProjects, createProject, updateProject, deleteProject, getProjectMembers, addProjectMember, removeProjectMember } from '@/api/projects'
+import { getAllGlossaryTerms } from '@/api/glossary'
+import { getUsers } from '@/api/auth'
 
 const statusColors = {
   active: { background: 'oklch(0.55 0.14 150 / 0.1)', color: 'oklch(0.45 0.14 150)' },
   archived: { background: 'oklch(0.55 0.005 260 / 0.1)', color: 'oklch(0.45 0.005 260)' },
+}
+
+const languageLabels = {
+  en: 'EN',
+  vi: 'VI',
+  ja: 'JA',
 }
 
 export default function ProjectsPage() {
@@ -17,7 +25,10 @@ export default function ProjectsPage() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
   const [showCreate, setShowCreate] = useState(false)
-  const [form, setForm] = useState({ name: '', description: '' })
+  const [manageProject, setManageProject] = useState(null)
+  const [editProject, setEditProject] = useState(null)
+  const [selectedMemberId, setSelectedMemberId] = useState('')
+  const [form, setForm] = useState({ name: '', description: '', preferredLanguage: 'ja' })
 
   const { data: projects = [], isLoading, isError, error } = useQuery({
     queryKey: ['projects'],
@@ -27,7 +38,19 @@ export default function ProjectsPage() {
   // ── Fetch glossary terms ──
   const { data: glossaryTerms = [] } = useQuery({
     queryKey: ['glossary'],
-    queryFn: getGlossary,
+    queryFn: getAllGlossaryTerms,
+  })
+
+  const { data: allUsers = [] } = useQuery({
+    queryKey: ['users'],
+    queryFn: getUsers,
+    enabled: user?.role === 'PM',
+  })
+
+  const { data: projectMembers = [] } = useQuery({
+    queryKey: ['projectMembers', manageProject?._id],
+    queryFn: () => getProjectMembers(manageProject._id),
+    enabled: Boolean(manageProject?._id),
   })
 
   const createMutation = useMutation({
@@ -35,27 +58,83 @@ export default function ProjectsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects'] })
       setShowCreate(false)
-      setForm({ name: '', description: '' })
+      setForm({ name: '', description: '', preferredLanguage: 'ja' })
+      toast.success(t('projects.newProject'), { description: 'Project created successfully' })
     },
+    onError: (err) => toast.error(err?.message || 'Failed to create project'),
   })
 
   const deleteMutation = useMutation({
     mutationFn: deleteProject,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects'] })
+      toast.success('Project deleted')
     },
+    onError: (err) => toast.error(err?.message || 'Failed to delete project'),
+  })
+
+  const addMemberMutation = useMutation({
+    mutationFn: ({ projectId, userId }) => addProjectMember(projectId, userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projectMembers', manageProject?._id] })
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
+      setSelectedMemberId('')
+      toast.success('Member added')
+    },
+    onError: (err) => toast.error(err?.message || 'Failed to add member'),
+  })
+
+  const removeMemberMutation = useMutation({
+    mutationFn: ({ projectId, userId }) => removeProjectMember(projectId, userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projectMembers', manageProject?._id] })
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
+      toast.success('Member removed')
+    },
+    onError: (err) => toast.error(err?.message || 'Failed to remove member'),
+  })
+
+  const updateMutation = useMutation({
+    mutationFn: ({ projectId, projectData }) => updateProject(projectId, projectData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
+      setEditProject(null)
+      toast.success('Project updated')
+    },
+    onError: (err) => toast.error(err?.message || 'Failed to update project'),
   })
 
   const handleCreate = (e) => {
     e.preventDefault()
     if (!form.name.trim()) return
-    createMutation.mutate({ name: form.name, description: form.description })
+    createMutation.mutate({
+      name: form.name,
+      description: form.description,
+      preferredLanguage: form.preferredLanguage,
+    })
   }
 
   const handleDelete = (projectId) => {
     if (window.confirm(t('projects.confirmDelete'))) {
       deleteMutation.mutate(projectId)
     }
+  }
+
+  const memberIdSet = new Set(projectMembers.map((member) => member._id))
+  const availableUsers = allUsers.filter((candidate) => !memberIdSet.has(candidate._id))
+
+  const openEditProject = (project) => {
+    setEditProject(project)
+    setForm({ name: project.name, description: project.description || '', preferredLanguage: project.preferredLanguage || 'ja' })
+  }
+
+  const handleUpdate = (e) => {
+    e.preventDefault()
+    if (!editProject || !form.name.trim()) return
+    updateMutation.mutate({
+      projectId: editProject._id,
+      projectData: { name: form.name, description: form.description, preferredLanguage: form.preferredLanguage },
+    })
   }
 
   return (
@@ -113,7 +192,7 @@ export default function ProjectsPage() {
                   </h3>
                   {project.description && (
                     <p style={{ fontSize: '0.8125rem', marginTop: '4px' }} className="text-text-muted line-clamp-2">
-                       <TextHighlighter text={project.description} glossaryTerms={glossaryTerms} />
+                      <TextHighlighter text={project.description} glossaryTerms={glossaryTerms} />
                     </p>
                   )}
                 </div>
@@ -128,16 +207,42 @@ export default function ProjectsPage() {
                   }}>
                     {t(`projects.statusOptions.${project.status}`) || project.status}
                   </span>
-                  {user?.role === 'PM' && (
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleDelete(project._id) }}
-                      disabled={deleteMutation.isPending}
-                      style={{ padding: '4px', borderRadius: '6px', cursor: 'pointer', border: 'none', background: 'transparent', transition: 'all 150ms' }}
-                      className="text-text-muted hover:text-danger hover:bg-danger/8"
-                      title={t('common.delete')}
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                  <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-accent/8 text-accent-dark">
+                    <Languages size={11} />
+                    {languageLabels[project.preferredLanguage] || 'JA'}
+                  </span>
+                  {(user?.role === 'PM' || user?.role === 'BrSE') && (
+                    <>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); openEditProject(project) }}
+                        style={{ padding: '4px', borderRadius: '6px', cursor: 'pointer', border: 'none', background: 'transparent', transition: 'all 150ms' }}
+                        className="text-text-muted hover:text-primary hover:bg-primary/8"
+                        title="Edit project"
+                      >
+                        <Pencil size={14} />
+                      </button>
+                      {user?.role === 'PM' && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setManageProject(project) }}
+                          style={{ padding: '4px', borderRadius: '6px', cursor: 'pointer', border: 'none', background: 'transparent', transition: 'all 150ms' }}
+                          className="text-text-muted hover:text-primary hover:bg-primary/8"
+                          title="Manage members"
+                        >
+                          <UserPlus size={14} />
+                        </button>
+                      )}
+                      {user?.role === 'PM' && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleDelete(project._id) }}
+                          disabled={deleteMutation.isPending}
+                          style={{ padding: '4px', borderRadius: '6px', cursor: 'pointer', border: 'none', background: 'transparent', transition: 'all 150ms' }}
+                          className="text-text-muted hover:text-danger hover:bg-danger/8"
+                          title={t('common.delete')}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
@@ -188,6 +293,24 @@ export default function ProjectsPage() {
             />
           </div>
 
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }} className="text-text-secondary">
+              {t('projects.preferredLanguage')}
+            </label>
+            <div className="relative">
+              <select
+                value={form.preferredLanguage}
+                onChange={(e) => setForm({ ...form, preferredLanguage: e.target.value })}
+                className="form-input appearance-none pr-9 cursor-pointer"
+              >
+                <option value="ja">{t('language.ja')}</option>
+                <option value="en">{t('language.en')}</option>
+                <option value="vi">{t('language.vi')}</option>
+              </select>
+              <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+            </div>
+          </div>
+
           {createMutation.isError && (
             <p style={{ fontSize: '0.875rem', marginBottom: '12px' }} className="text-danger">{createMutation.error?.message}</p>
           )}
@@ -198,6 +321,130 @@ export default function ProjectsPage() {
             </Button>
             <Button type="submit" disabled={createMutation.isPending}>
               {createMutation.isPending ? t('common.loading') : t('common.create')}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal open={Boolean(manageProject)} onClose={() => setManageProject(null)} title="Manage project members">
+        <div className="space-y-4">
+          <div>
+            <p className="text-sm font-medium text-text-primary">{manageProject?.name}</p>
+            <p className="text-xs text-text-muted mt-0.5">{projectMembers.length} members assigned</p>
+          </div>
+
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <select
+                value={selectedMemberId}
+                onChange={(e) => setSelectedMemberId(e.target.value)}
+                className="form-input appearance-none pr-9 cursor-pointer"
+              >
+                <option value="">Select user to add</option>
+                {availableUsers.map((candidate) => (
+                  <option key={candidate._id} value={candidate._id}>
+                    {candidate.name} ({candidate.role})
+                  </option>
+                ))}
+              </select>
+              <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+            </div>
+            <Button
+              type="button"
+              icon={UserPlus}
+              disabled={!selectedMemberId || addMemberMutation.isPending}
+              onClick={() => addMemberMutation.mutate({ projectId: manageProject._id, userId: selectedMemberId })}
+            >
+              Add
+            </Button>
+          </div>
+
+          {(addMemberMutation.isError || removeMemberMutation.isError) && (
+            <p className="text-sm text-danger">
+              {addMemberMutation.error?.message || removeMemberMutation.error?.message}
+            </p>
+          )}
+
+          <div className="border border-border rounded-lg divide-y divide-border overflow-hidden">
+            {projectMembers.map((member) => (
+              <div key={member._id} className="flex items-center justify-between gap-3 px-3 py-2.5">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-text-primary truncate">{member.name}</p>
+                  <p className="text-xs text-text-muted truncate">{member.email} · {member.role}</p>
+                </div>
+                <button
+                  type="button"
+                  disabled={removeMemberMutation.isPending}
+                  onClick={() => removeMemberMutation.mutate({ projectId: manageProject._id, userId: member._id })}
+                  className="p-2 rounded-lg text-text-muted hover:text-danger hover:bg-danger/8"
+                  title="Remove member"
+                >
+                  <UserMinus size={15} />
+                </button>
+              </div>
+            ))}
+            {projectMembers.length === 0 && (
+              <div className="empty-state py-8">
+                <Users size={22} />
+                <p className="text-sm">{t('common.noData')}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </Modal>
+
+      {/* Edit project modal */}
+      <Modal open={Boolean(editProject)} onClose={() => setEditProject(null)} title={t('common.edit') + ' ' + t('projects.title').toLowerCase().slice(0, -1)}>
+        <form onSubmit={handleUpdate} className="space-y-3.5">
+          <div>
+            <label className="block text-sm font-medium text-text-secondary mb-1">
+              {t('projects.projectName')} *
+            </label>
+            <input
+              type="text"
+              required
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              className="form-input"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-text-secondary mb-1">
+              {t('projects.description')}
+            </label>
+            <textarea
+              rows={3}
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              className="form-input resize-none"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-text-secondary mb-1">
+              {t('projects.preferredLanguage')}
+            </label>
+            <div className="relative">
+              <select
+                value={form.preferredLanguage}
+                onChange={(e) => setForm({ ...form, preferredLanguage: e.target.value })}
+                className="form-input appearance-none pr-9 cursor-pointer"
+              >
+                <option value="ja">{t('language.ja')}</option>
+                <option value="en">{t('language.en')}</option>
+                <option value="vi">{t('language.vi')}</option>
+              </select>
+              <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+            </div>
+          </div>
+          {updateMutation.isError && (
+            <p className="text-sm text-danger">{updateMutation.error?.message}</p>
+          )}
+          <div className="flex items-center justify-end gap-2 pt-1">
+            <Button variant="ghost" type="button" onClick={() => setEditProject(null)}>
+              {t('common.cancel')}
+            </Button>
+            <Button type="submit" disabled={updateMutation.isPending}>
+              {updateMutation.isPending ? t('common.loading') : t('common.save')}
             </Button>
           </div>
         </form>

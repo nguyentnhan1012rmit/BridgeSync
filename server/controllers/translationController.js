@@ -1,5 +1,7 @@
 const axios = require('axios');
 const ITGlossary = require('../models/ITGlossary');
+const { sendError, sendServerError } = require('../utils/httpResponses');
+const { logger } = require('../utils/logger');
 
 // @desc    Translate text (Checks Glossary first, then falls back to API)
 // @route   POST /api/translate
@@ -8,18 +10,30 @@ const translateText = async (req, res) => {
         const { text, targetLang } = req.body; // e.g., targetLang: 'ja' or 'vi'
 
         if (!text || !targetLang) {
-            return res.status(400).json({ message: 'Text and target language are required.' });
+            return sendError(res, 400, 'Text and target language are required.', 'VALIDATION_ERROR');
         }
 
+        if (!['en', 'vi', 'ja'].includes(targetLang)) {
+            return sendError(res, 400, 'Unsupported target language.', 'VALIDATION_ERROR');
+        }
+
+        const normalizedText = text.trim().toLocaleLowerCase();
+
         // 1. Check Custom IT Glossary First (case-insensitive)
-        const glossaryMatch = await ITGlossary.findOne({
-            baseTerm: { $regex: new RegExp(`^${text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }
-        });
+        const glossaryQuery = {
+            $or: [
+                { normalizedBaseTerm: normalizedText },
+                { baseTerm: { $regex: new RegExp(`^${text.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } }
+            ]
+        };
+
+        const glossaryMatch = await ITGlossary.findOneAndUpdate(
+            glossaryQuery,
+            { $inc: { useCount: 1 } },
+            { new: true }
+        ).lean();
 
         if (glossaryMatch && glossaryMatch.translations[targetLang]) {
-            glossaryMatch.useCount += 1;
-            await glossaryMatch.save();
-
             return res.json({
                 originalText: text,
                 translatedText: glossaryMatch.translations[targetLang],
@@ -57,8 +71,7 @@ const translateText = async (req, res) => {
                 source: 'DeepL API'
             });
         } catch (deeplError) {
-            const errMsg = deeplError.response?.data?.message || deeplError.message;
-            console.error('DeepL API Error:', errMsg);
+            logger.warn({ err: deeplError }, 'DeepL API Error');
 
             // Return original text gracefully instead of crashing with 500
             return res.json({
@@ -69,8 +82,8 @@ const translateText = async (req, res) => {
         }
 
     } catch (error) {
-        console.error('Translation API Error:', error.message);
-        res.status(500).json({ message: 'Failed to translate text.' });
+        logger.error({ err: error }, 'Translation API Error');
+        sendServerError(res, error);
     }
 };
 

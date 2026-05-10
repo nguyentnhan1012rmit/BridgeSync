@@ -2,6 +2,7 @@ const mongoose = require('mongoose')
 
 const ITGlossarySchema = new mongoose.Schema({
     baseTerm: { type: String, required: true, unique: true }, // E.g., "Deployment"
+    normalizedBaseTerm: { type: String, required: true, unique: true, index: true },
     translations: {
         en: { type: String, required: true },
         vi: { type: String, required: true },
@@ -10,5 +11,14 @@ const ITGlossarySchema = new mongoose.Schema({
     addedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Users' }, // Tracks which BrSE added the term
     useCount: { type: Number, default: 0 } // Useful for caching frequently used terms later 
 }, { timestamps: true });
+
+ITGlossarySchema.pre('validate', function (next) {
+    if (this.baseTerm) {
+        this.baseTerm = this.baseTerm.trim();
+        this.normalizedBaseTerm = this.baseTerm.toLocaleLowerCase();
+    }
+
+    next();
+});
 
 module.exports = mongoose.model('ITGlossary', ITGlossarySchema)

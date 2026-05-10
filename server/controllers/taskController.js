@@ -1,13 +1,26 @@
 const Task = require('../models/Tasks')
+const mongoose = require('mongoose')
+const { sendError, sendServerError } = require('../utils/httpResponses')
+const { emitEvent } = require('../socket')
+
+const allowedStatuses = ['ongoing', 'completed', 'delayed'];
+
+const isProjectMember = (project, userId) => {
+    return project.members.some(memberId => memberId.toString() === userId.toString());
+}
 
 // @route   GET /api/tasks/:projectId
 const getTasksByProject = async (req, res) => {
     try {
-        const tasks = await Task.find({ projectId: req.params.projectId }).populate('assigneeId', 'name').populate('reporterId', 'name');
+        const tasks = await Task.find({ projectId: req.project._id })
+            .sort({ createdAt: -1 })
+            .populate('assigneeId', 'name')
+            .populate('reporterId', 'name')
+            .lean();
 
         res.json(tasks)
     } catch (error) {
-        res.status(500).json({ message: error.message })
+        sendServerError(res, error)
     }
 }
 
@@ -16,15 +29,27 @@ const createTask = async (req, res) => {
     try {
         const { projectId, title, description, assigneeId } = req.body;
 
-        if (!projectId || !title) {
-            return res.status(400).json({ message: 'Project ID and Task Title are required.' });
+        if (!projectId || !title?.trim()) {
+            return sendError(res, 400, 'Project ID and Task Title are required.', 'VALIDATION_ERROR');
+        }
+
+        const normalizedAssigneeId = assigneeId || undefined;
+
+        if (normalizedAssigneeId) {
+            if (!mongoose.Types.ObjectId.isValid(normalizedAssigneeId)) {
+                return sendError(res, 400, 'Invalid assignee id', 'VALIDATION_ERROR');
+            }
+
+            if (!isProjectMember(req.project, normalizedAssigneeId)) {
+                return sendError(res, 400, 'Assignee must be a member of the project.', 'VALIDATION_ERROR');
+            }
         }
 
         const task = new Task({
-            projectId,
-            title,
+            projectId: req.project._id,
+            title: title.trim(),
             description,
-            assigneeId,
+            assigneeId: normalizedAssigneeId,
             reporterId: req.user._id
         });
 
@@ -32,9 +57,46 @@ const createTask = async (req, res) => {
 
         await savedTask.populate('assigneeId', 'name role');
         await savedTask.populate('reporterId', 'name role');
+        emitEvent('task:created', { projectId: String(req.project._id), task: savedTask });
         res.status(201).json(savedTask)
     } catch (error) {
-        res.status(500).json({ message: error.message })
+        sendServerError(res, error)
+    }
+}
+
+// @route PUT /api/tasks/:taskId
+const updateTask = async (req, res) => {
+    try {
+        const { title, description, assigneeId } = req.body;
+
+        if (!title?.trim()) {
+            return sendError(res, 400, 'Task title is required.', 'VALIDATION_ERROR');
+        }
+
+        const normalizedAssigneeId = assigneeId || undefined;
+
+        if (normalizedAssigneeId) {
+            if (!mongoose.Types.ObjectId.isValid(normalizedAssigneeId)) {
+                return sendError(res, 400, 'Invalid assignee id', 'VALIDATION_ERROR');
+            }
+
+            if (!isProjectMember(req.project, normalizedAssigneeId)) {
+                return sendError(res, 400, 'Assignee must be a member of the project.', 'VALIDATION_ERROR');
+            }
+        }
+
+        req.task.title = title.trim();
+        req.task.description = description || '';
+        req.task.assigneeId = normalizedAssigneeId;
+
+        const task = await req.task.save();
+        await task.populate('assigneeId', 'name role');
+        await task.populate('reporterId', 'name role');
+
+        emitEvent('task:updated', { projectId: String(task.projectId), task });
+        res.json(task);
+    } catch (error) {
+        sendServerError(res, error)
     }
 }
 
@@ -42,19 +104,40 @@ const createTask = async (req, res) => {
 const updateTaskStatus = async (req, res) => {
     try {
         const { status } = req.body;
-        const task = await Task.findByIdAndUpdate(req.params.taskId, { status: status }, { new: true })
 
-        if (!task) {
-            return res.status(404).json({ message: 'Task not found' })
+        if (!allowedStatuses.includes(status)) {
+            return sendError(res, 400, 'Invalid task status', 'VALIDATION_ERROR');
         }
+
+        req.task.status = status;
+        const task = await req.task.save();
+        await task.populate('assigneeId', 'name role');
+        await task.populate('reporterId', 'name role');
+
+        emitEvent('task:updated', { projectId: String(task.projectId), task });
         res.json(task);
     } catch (error) {
-        res.status(500).json({ message: error.message })
+        sendServerError(res, error)
+    }
+}
+
+// @route DELETE /api/tasks/:taskId
+const deleteTask = async (req, res) => {
+    try {
+        const projectId = String(req.task.projectId);
+        const taskId = String(req.task._id);
+        await req.task.deleteOne();
+        emitEvent('task:deleted', { projectId, taskId });
+        res.json({ message: 'Task deleted successfully' });
+    } catch (error) {
+        sendServerError(res, error)
     }
 }
 
 module.exports = {
     getTasksByProject,
     createTask,
-    updateTaskStatus
+    updateTask,
+    updateTaskStatus,
+    deleteTask
 }

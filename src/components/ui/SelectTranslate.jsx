@@ -2,11 +2,12 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { Languages, Loader2, X, Sparkles } from 'lucide-react'
 import { translateText } from '@/api/translate'
+import FlagIcon from './FlagIcon'
 
 const LANG_LABELS = {
-  en: { flag: '🇺🇸', label: 'English', code: 'EN' },
-  vi: { flag: '🇻🇳', label: 'Tiếng Việt', code: 'VI' },
-  ja: { flag: '🇯🇵', label: '日本語', code: 'JP' },
+  en: { label: 'English', code: 'EN' },
+  vi: { label: 'Tiếng Việt', code: 'VI' },
+  ja: { label: '日本語', code: 'JP' },
 }
 
 // Check if user is authenticated (has a token in localStorage)
@@ -147,7 +148,7 @@ export default function SelectTranslate() {
 
       await Promise.all(promises)
       setResults(translationResults)
-    } catch (err) {
+    } catch {
       setError('Translation failed. Please try again.')
     } finally {
       setLoading(false)
@@ -241,7 +242,7 @@ export default function SelectTranslate() {
                 return (
                   <div key={langKey} className="select-translate-row">
                     <div className="select-translate-lang-badge">
-                      <span className="text-[11px]">{langInfo.flag}</span>
+                      <FlagIcon code={langKey} size={14} />
                       <span className="text-[10px] font-mono font-semibold">
                         {langInfo.code}
                       </span>

@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 import { Card, Button, TextHighlighter } from '@/components/ui'
 import { getDashboardStats } from '@/api/stats'
-import { getGlossary } from '@/api/glossary'
+import { getAllGlossaryTerms } from '@/api/glossary'
 
 export default function DashboardPage() {
   const { t } = useTranslation()
@@ -23,13 +23,12 @@ export default function DashboardPage() {
   const { data, isLoading } = useQuery({
     queryKey: ['dashboardStats'],
     queryFn: getDashboardStats,
-    refetchInterval: 30000,
   })
 
   // ── Fetch glossary terms ──
   const { data: glossaryTerms = [] } = useQuery({
     queryKey: ['glossary'],
-    queryFn: getGlossary,
+    queryFn: getAllGlossaryTerms,
   })
 
   const statsConfig = [
@@ -107,9 +106,9 @@ export default function DashboardPage() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-text-primary leading-tight">
                     <span className="font-medium">{report.authorId?.name || 'Someone'}</span>
-                    {' submitted a report'}
+                    {' '}{t('activity.submittedReport')}
                     {report.projectId?.name && (
-                      <> for <span className="font-medium text-primary">{report.projectId.name}</span></>
+                      <> {t('activity.forProject')} <span className="font-medium text-primary">{report.projectId.name}</span></>
                     )}
                   </p>
                   {report.houkoku?.currentStatus && (
@@ -133,21 +132,27 @@ export default function DashboardPage() {
             {t('dashboard.quickActions')}
           </h2>
           <div className="flex flex-col gap-2">
-            <Button variant="primary" size="lg" icon={Plus} className="w-full justify-start"
-              onClick={() => navigate('/projects')}
-            >
-              {t('projects.newProject')}
-            </Button>
-            <Button variant="secondary" size="lg" icon={Plus} className="w-full justify-start"
-              onClick={() => navigate('/tasks')}
-            >
-              {t('tasks.newTask')}
-            </Button>
-            <Button variant="secondary" size="lg" icon={Plus} className="w-full justify-start"
-              onClick={() => navigate('/hourenso')}
-            >
-              {t('hourenso.newReport')}
-            </Button>
+            {(user?.role === 'PM' || user?.role === 'BrSE') && (
+              <>
+                <Button variant="primary" size="lg" icon={Plus} className="w-full justify-start"
+                  onClick={() => navigate('/projects')}
+                >
+                  {t('projects.newProject')}
+                </Button>
+                <Button variant="secondary" size="lg" icon={Plus} className="w-full justify-start"
+                  onClick={() => navigate('/tasks')}
+                >
+                  {t('tasks.newTask')}
+                </Button>
+              </>
+            )}
+            {(user?.role === 'PM' || user?.role === 'BrSE' || user?.role === 'Developer') && (
+              <Button variant="secondary" size="lg" icon={Plus} className="w-full justify-start"
+                onClick={() => navigate('/hourenso')}
+              >
+                {t('hourenso.newReport')}
+              </Button>
+            )}
             <Button variant="secondary" size="lg" icon={FileText} className="w-full justify-start"
               onClick={() => navigate('/hourenso')}
             >

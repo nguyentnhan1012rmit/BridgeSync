@@ -13,4 +13,8 @@ const taskSchema = new mongoose.Schema({
     reporterId: { type: mongoose.Schema.Types.ObjectId, ref: 'Users' }
 }, { timestamps: true });
 
+taskSchema.index({ projectId: 1, createdAt: -1 });
+taskSchema.index({ projectId: 1, status: 1 });
+taskSchema.index({ assigneeId: 1, status: 1 });
+
 module.exports = mongoose.model('Tasks', taskSchema);
