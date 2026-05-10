@@ -199,6 +199,16 @@ npm run build
 
 ---
 
+## ✅ Recent UAT & Verification Status
+
+The application has successfully passed the **Final UAT (User Acceptance Testing) Verification**:
+- **Infrastructure:** Verified concurrent frontend/backend initialization (`npm run dev`) with proper `helmet` and `mongoose` dependencies. Quality checks (`npm run lint`, `npm test`, `npm run build`) all pass.
+- **RBAC & Authorization:** Verified that the API correctly enforces role-based access control. Creation and deletion endpoints (`POST`, `PUT`, `DELETE`) for Projects, Tasks, and Hourenso reports are strictly blocked (yielding `403 Forbidden`) for the `Japanese client` role.
+- **UI Cleanup:** Cleaned up the `DashboardPage` so that Quick Action buttons (New Project, New Task, New Report) are conditionally hidden based on the user's role, preventing unauthorized users (like Developers or Clients) from seeing actions they cannot perform.
+- **Deployment Ready:** The application is verified and structurally ready for production deployment to Vercel (Frontend) and Render/Railway (Backend).
+
+---
+
 ## 🔑 Test Accounts
 
 You can register new accounts via the Signup page (`/signup`). Choose from the following roles:
@@ -214,10 +224,10 @@ You can register new accounts via the Signup page (`/signup`). Choose from the f
 
 | Email | Password | Role |
 |-------|----------|------|
-| `pm@bridgesync.com` | `Test1234` | PM |
-| `brse@bridgesync.com` | `Test1234` | BrSE |
-| `dev@bridgesync.com` | `Test1234` | Developer |
-| `client@bridgesync.com` | `Test1234` | Japanese client |
+| `pm_final@bridgesync.com` | `Test1234` | PM |
+| `brse_final@bridgesync.com` | `Test1234` | BrSE |
+| `uat_dev@bridgesync.com` | `Test1234` | Developer |
+| `client_final@bridgesync.com` | `Test1234` | Japanese client |
 
 > **Note:** If these accounts don't exist yet in your database, create them via the Signup page at `/signup`. Select the appropriate role from the dropdown during registration.
 

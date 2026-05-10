@@ -41,9 +41,9 @@ BridgeSync contains core MVP features specifically designed to bridge the gap be
 
 | Action | Required Role | Test Account | Password |
 |--------|--------------|--------------|----------|
-| View glossary | Any authenticated | `dev@bridgesync.com` | `Test1234` |
-| Add new term | BrSE only | `brse@bridgesync.com` | `Test1234` |
-| Import CSV/XLSX terms | BrSE only | `brse@bridgesync.com` | `Test1234` |
+| View glossary | Any authenticated | `uat_dev@bridgesync.com` | `Test1234` |
+| Add new term | BrSE only | `brse_final@bridgesync.com` | `Test1234` |
+| Import CSV/XLSX terms | BrSE only | `brse_final@bridgesync.com` | `Test1234` |
 
 ---
 
@@ -68,7 +68,7 @@ BridgeSync contains core MVP features specifically designed to bridge the gap be
 
 | Action | Required Role | Test Account | Password |
 |--------|--------------|--------------|----------|
-| Select text to translate | Any authenticated | `dev@bridgesync.com` | `Test1234` |
+| Select text to translate | Any authenticated | `uat_dev@bridgesync.com` | `Test1234` |
 
 ---
 
@@ -96,9 +96,9 @@ BridgeSync contains core MVP features specifically designed to bridge the gap be
 
 | Action | Required Role | Test Account | Password |
 |--------|--------------|--------------|----------|
-| View reports | Any authenticated | `client@bridgesync.com` | `Test1234` |
-| Create report | PM, BrSE, Developer | `dev@bridgesync.com` | `Test1234` |
-| Export to Excel | Any authenticated | `dev@bridgesync.com` | `Test1234` |
+| View reports | Any authenticated | `client_final@bridgesync.com` | `Test1234` |
+| Create report | PM, BrSE, Developer | `uat_dev@bridgesync.com` | `Test1234` |
+| Export to Excel | Any authenticated | `uat_dev@bridgesync.com` | `Test1234` |
 
 ---
 
@@ -121,9 +121,9 @@ BridgeSync contains core MVP features specifically designed to bridge the gap be
 
 | Action | Required Role | Test Account | Password |
 |--------|--------------|--------------|----------|
-| View projects | Any authenticated | `dev@bridgesync.com` | `Test1234` |
-| Create project | PM or BrSE | `pm@bridgesync.com` | `Test1234` |
-| Delete project | PM only | `pm@bridgesync.com` | `Test1234` |
+| View projects | Any authenticated | `uat_dev@bridgesync.com` | `Test1234` |
+| Create project | PM or BrSE | `pm_final@bridgesync.com` | `Test1234` |
+| Delete project | PM only | `pm_final@bridgesync.com` | `Test1234` |
 
 ---
 
@@ -146,9 +146,9 @@ BridgeSync contains core MVP features specifically designed to bridge the gap be
 
 | Action | Required Role | Test Account | Password |
 |--------|--------------|--------------|----------|
-| View tasks | Any authenticated | `dev@bridgesync.com` | `Test1234` |
-| Create task | PM or BrSE | `pm@bridgesync.com` | `Test1234` |
-| Update task status | PM, BrSE, Developer | `dev@bridgesync.com` | `Test1234` |
+| View tasks | Any authenticated | `uat_dev@bridgesync.com` | `Test1234` |
+| Create task | PM or BrSE | `pm_final@bridgesync.com` | `Test1234` |
+| Update task status | PM, BrSE, Developer | `uat_dev@bridgesync.com` | `Test1234` |
 
 ---
 
@@ -166,14 +166,14 @@ BridgeSync contains core MVP features specifically designed to bridge the gap be
         * Reports This Week (count of hourenso reports created in the last 7 days)
         * Glossary Terms (total count of IT glossary entries)
     * **Recent Activity Feed:** Displays the 5 most recent hourenso reports across all projects, showing author name, project name, report summary, and timestamp.
-    * **Quick Actions Panel:** Shortcut buttons for creating projects, tasks, reports, and exporting to Excel.
+    * **Quick Actions Panel:** Shortcut buttons for creating projects, tasks, reports, and exporting to Excel. Conditionally rendered using strict Role-Based Access Control (RBAC) to hide creation buttons from unauthorized roles (e.g., Japanese clients see only Export).
     * **Auto-Refresh:** Stats refresh every 30 seconds via React Query's `refetchInterval`.
 
 ### Test Accounts for This Feature
 
 | Action | Required Role | Test Account | Password |
 |--------|--------------|--------------|----------|
-| View dashboard | Any authenticated | `pm@bridgesync.com` | `Test1234` |
+| View dashboard | Any authenticated | `pm_final@bridgesync.com` | `Test1234` |
 
 ---
 
