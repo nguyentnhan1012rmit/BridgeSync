@@ -12,6 +12,7 @@ const hourensoRoutes = require('./routes/hourensoRoutes');
 const statsRoutes = require('./routes/statsRoutes');
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
 const { sendError } = require('./utils/httpResponses');
+const { requestLogger } = require('./utils/logger');
 
 const app = express();
 const allowedOrigins = [
@@ -29,6 +30,7 @@ const apiLimiter = rateLimit({
 });
 
 app.use(helmet());
+app.use(requestLogger);
 app.use(cors({ origin: allowedOrigins }));
 app.use(express.json({ limit: '1mb' }));
 app.use('/api', apiLimiter);
