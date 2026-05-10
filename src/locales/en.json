@@ -36,6 +36,7 @@
     "projectName": "Project Name",
     "description": "Description",
     "client": "Client",
+    "preferredLanguage": "Preferred Language",
     "status": "Status",
     "dueDate": "Due Date",
     "members": "Members",
@@ -93,12 +94,29 @@
       "consultTopic": "Consultation Topic",
       "options": "Options / Proposals",
       "deadline": "Decision Deadline"
+    },
+    "quality": {
+      "title": "Hourenso Quality Check",
+      "subtitle": "Template guidance before submitting",
+      "ready": "This report is structured and ready to submit.",
+      "missingRequired": "{{field}} is required for a complete Houkoku update.",
+      "statusTooShort": "Current status is very short; add enough context for stakeholders.",
+      "progressNeedsEvidence": "Progress is clearer with numbers, percent complete, or concrete completed work.",
+      "issueNeedsNextStep": "If issues are mentioned, add a concrete next step or owner.",
+      "soudanNeedsTopic": "Decision requests need a clear consultation topic.",
+      "soudanNeedsOptions": "Soudan is stronger with at least two proposed options.",
+      "soudanNeedsDeadline": "Add a decision deadline when asking stakeholders to decide.",
+      "renrakuOptional": "Consider adding shared information if the wider team needs context."
     }
   },
   "glossary": {
     "title": "IT Glossary",
     "searchTerms": "Search terms...",
     "addTerm": "Add Term",
+    "importTerms": "Import Terms",
+    "importResult": "Imported {{imported}} terms. Skipped {{skipped}} rows.",
+    "importFailed": "Failed to import glossary terms.",
+    "importNoRows": "No glossary terms found in the selected file.",
     "term": "Term",
     "english": "English",
     "vietnamese": "Vietnamese",

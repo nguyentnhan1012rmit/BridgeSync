@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/Users');
+const { sendError } = require('../utils/httpResponses');
 
 const protect = async (req, res, next) => {
     let token;
@@ -12,15 +13,19 @@ const protect = async (req, res, next) => {
 
             req.user = await User.findById(decoded.id).select('-password');
 
-            next();
+            if (!req.user) {
+                return sendError(res, 401, 'Not authorized, user not found', 'AUTH_USER_NOT_FOUND');
+            }
+
+            return next();
         } catch (error) {
             console.error(error);
-            res.status(401).json({ message: 'Not authorized, token failed' });
+            return sendError(res, 401, 'Not authorized, token failed', 'AUTH_TOKEN_FAILED');
         }
     }
 
     if (!token) {
-        return res.status(401).json({ message: 'Not authorized, no token' });
+        return sendError(res, 401, 'Not authorized, no token', 'AUTH_TOKEN_MISSING');
     }
 };
 
@@ -28,7 +33,7 @@ const protect = async (req, res, next) => {
 const authorize = (...roles) => {
     return (req, res, next) => {
         if (!roles.includes(req.user.role)) {
-            return res.status(403).json({ message: `User role '${req.user.role}' is not authorized to access this route` });
+            return sendError(res, 403, `User role '${req.user.role}' is not authorized to access this route`, 'ROLE_FORBIDDEN');
         }
         next();
     };

@@ -48,3 +48,16 @@ export const deleteProject = (projectId) => {
 export const getProjectMembers = (projectId) => {
   return authFetch(`/projects/${projectId}/members`);
 };
+
+export const addProjectMember = (projectId, userId) => {
+  return authFetch(`/projects/${projectId}/members`, {
+    method: 'POST',
+    body: JSON.stringify({ userId }),
+  });
+};
+
+export const removeProjectMember = (projectId, userId) => {
+  return authFetch(`/projects/${projectId}/members/${userId}`, {
+    method: 'DELETE',
+  });
+};

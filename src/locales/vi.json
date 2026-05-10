@@ -36,6 +36,7 @@
     "projectName": "Tên dự án",
     "description": "Mô tả",
     "client": "Khách hàng",
+    "preferredLanguage": "Ngôn ngữ ưu tiên",
     "status": "Trạng thái",
     "dueDate": "Ngày đến hạn",
     "members": "Thành viên",
@@ -93,12 +94,29 @@
       "consultTopic": "Chủ đề tham vấn",
       "options": "Phương án / Đề xuất",
       "deadline": "Hạn quyết định"
+    },
+    "quality": {
+      "title": "Kiểm tra chất lượng Hourenso",
+      "subtitle": "Gợi ý theo mẫu trước khi gửi",
+      "ready": "Báo cáo đã có cấu trúc tốt và sẵn sàng gửi.",
+      "missingRequired": "{{field}} là bắt buộc để hoàn thiện phần Houkoku.",
+      "statusTooShort": "Trạng thái hiện tại còn quá ngắn; hãy thêm ngữ cảnh cho stakeholder.",
+      "progressNeedsEvidence": "Tiến độ sẽ rõ hơn nếu có số liệu, phần trăm hoàn thành, hoặc việc đã xong cụ thể.",
+      "issueNeedsNextStep": "Nếu có vấn đề, hãy thêm bước tiếp theo hoặc người phụ trách cụ thể.",
+      "soudanNeedsTopic": "Yêu cầu quyết định cần có chủ đề tham vấn rõ ràng.",
+      "soudanNeedsOptions": "Phần Soudan nên có ít nhất hai phương án đề xuất.",
+      "soudanNeedsDeadline": "Hãy thêm hạn quyết định khi cần stakeholder đưa ra lựa chọn.",
+      "renrakuOptional": "Nên thêm thông tin chia sẻ nếu đội ngũ cần thêm ngữ cảnh."
     }
   },
   "glossary": {
     "title": "Từ điển IT",
     "searchTerms": "Tìm thuật ngữ...",
     "addTerm": "Thêm thuật ngữ",
+    "importTerms": "Nhập thuật ngữ",
+    "importResult": "Đã nhập {{imported}} thuật ngữ. Bỏ qua {{skipped}} dòng.",
+    "importFailed": "Không thể nhập thuật ngữ.",
+    "importNoRows": "Không tìm thấy thuật ngữ trong file đã chọn.",
     "term": "Thuật ngữ",
     "english": "Tiếng Anh",
     "vietnamese": "Tiếng Việt",

@@ -25,4 +25,7 @@ const hourensoReportSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
+hourensoReportSchema.index({ projectId: 1, createdAt: -1 });
+hourensoReportSchema.index({ authorId: 1, createdAt: -1 });
+
 module.exports = mongoose.model('HourensoReports', hourensoReportSchema)

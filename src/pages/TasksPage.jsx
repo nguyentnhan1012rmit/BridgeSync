@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, Info, Loader2, AlertCircle, ChevronDown, ListChecks } from 'lucide-react'
+import { Plus, Info, Loader2, AlertCircle, ChevronDown, ListChecks, Pencil, Trash2 } from 'lucide-react'
 import { Card, Button, Modal, TextHighlighter } from '@/components/ui'
 import { useAuth } from '@/hooks/useAuth'
-import { getTasksByProject, createTask, updateTaskStatus } from '@/api/tasks'
+import { getTasksByProject, createTask, updateTask, updateTaskStatus, deleteTask } from '@/api/tasks'
 import { getProjects, getProjectMembers } from '@/api/projects'
 import { getGlossary } from '@/api/glossary'
 
@@ -22,6 +22,7 @@ export default function TasksPage() {
   const queryClient = useQueryClient()
   const [selectedProject, setSelectedProject] = useState('')
   const [showCreate, setShowCreate] = useState(false)
+  const [editingTask, setEditingTask] = useState(null)
   const [form, setForm] = useState({ title: '', description: '', assigneeId: '' })
 
   // ── Fetch projects for selector ──
@@ -68,6 +69,22 @@ export default function TasksPage() {
     },
   })
 
+  const updateTaskMutation = useMutation({
+    mutationFn: ({ taskId, taskData }) => updateTask(taskId, taskData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks', selectedProject] })
+      setEditingTask(null)
+      setForm({ title: '', description: '', assigneeId: '' })
+    },
+  })
+
+  const deleteTaskMutation = useMutation({
+    mutationFn: deleteTask,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks', selectedProject] })
+    },
+  })
+
   const handleCreate = (e) => {
     e.preventDefault()
     if (!form.title.trim()) return
@@ -83,6 +100,34 @@ export default function TasksPage() {
     const currentIdx = statusCycle.indexOf(task.status)
     const nextStatus = statusCycle[(currentIdx + 1) % statusCycle.length]
     updateStatusMutation.mutate({ taskId: task._id, status: nextStatus })
+  }
+
+  const openEditTask = (task) => {
+    setEditingTask(task)
+    setForm({
+      title: task.title || '',
+      description: task.description || '',
+      assigneeId: task.assigneeId?._id || '',
+    })
+  }
+
+  const handleUpdate = (e) => {
+    e.preventDefault()
+    if (!editingTask || !form.title.trim()) return
+    updateTaskMutation.mutate({
+      taskId: editingTask._id,
+      taskData: {
+        title: form.title,
+        description: form.description,
+        assigneeId: form.assigneeId || undefined,
+      },
+    })
+  }
+
+  const handleDeleteTask = (taskId) => {
+    if (window.confirm('Delete this task?')) {
+      deleteTaskMutation.mutate(taskId)
+    }
   }
 
   return (
@@ -194,6 +239,28 @@ export default function TasksPage() {
                   <span className="text-xs text-text-muted whitespace-nowrap">
                     {new Date(task.createdAt).toLocaleDateString()}
                   </span>
+
+                  {(user?.role === 'PM' || user?.role === 'BrSE') && (
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => openEditTask(task)}
+                        className="p-1.5 rounded-md text-text-muted hover:text-primary hover:bg-primary/8"
+                        title="Edit task"
+                      >
+                        <Pencil size={14} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteTask(task._id)}
+                        disabled={deleteTaskMutation.isPending}
+                        className="p-1.5 rounded-md text-text-muted hover:text-danger hover:bg-danger/8"
+                        title="Delete task"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  )}
                 </div>
               )
             })}
@@ -260,6 +327,69 @@ export default function TasksPage() {
             </Button>
             <Button type="submit" disabled={createMutation.isPending}>
               {createMutation.isPending ? t('common.loading') : t('common.create')}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal open={Boolean(editingTask)} onClose={() => setEditingTask(null)} title="Edit task">
+        <form onSubmit={handleUpdate} className="space-y-3.5">
+          <div>
+            <label className="block text-sm font-medium text-text-secondary mb-1">
+              {t('tasks.taskName')} *
+            </label>
+            <input
+              type="text"
+              required
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              placeholder={t('tasks.taskName')}
+              className="form-input"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-text-secondary mb-1">
+              {t('tasks.description')}
+            </label>
+            <textarea
+              rows={3}
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              placeholder={t('tasks.description')}
+              className="form-input resize-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-text-secondary mb-1">
+              {t('tasks.assignee')}
+            </label>
+            <div className="relative">
+              <select
+                value={form.assigneeId}
+                onChange={(e) => setForm({ ...form, assigneeId: e.target.value })}
+                className="form-input appearance-none pr-9 cursor-pointer"
+              >
+                <option value="">{t('tasks.unassigned')}</option>
+                {members.map((m) => (
+                  <option key={m._id} value={m._id}>{m.name} ({m.role})</option>
+                ))}
+              </select>
+              <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+            </div>
+          </div>
+
+          {updateTaskMutation.isError && (
+            <p className="text-sm text-danger">{updateTaskMutation.error?.message}</p>
+          )}
+
+          <div className="flex items-center justify-end gap-2 pt-1">
+            <Button variant="ghost" type="button" onClick={() => setEditingTask(null)}>
+              {t('common.cancel')}
+            </Button>
+            <Button type="submit" disabled={updateTaskMutation.isPending}>
+              {updateTaskMutation.isPending ? t('common.loading') : 'Save'}
             </Button>
           </div>
         </form>

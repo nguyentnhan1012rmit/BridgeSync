@@ -1,5 +1,7 @@
+import { API_BASE, authFetch } from './apiClient';
+
 export const loginUser = async (credentials) => {
-  const response = await fetch('/api/auth/login', {
+  const response = await fetch(`${API_BASE}/auth/login`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -16,7 +18,7 @@ export const loginUser = async (credentials) => {
 };
 
 export const registerUser = async (userData) => {
-  const response = await fetch('/api/auth/register', {
+  const response = await fetch(`${API_BASE}/auth/register`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -30,4 +32,14 @@ export const registerUser = async (userData) => {
   }
 
   return response.json();
+};
+
+export const getUsers = () => {
+  return authFetch('/auth/users');
+};
+
+export const logoutUser = () => {
+  return authFetch('/auth/logout', {
+    method: 'POST',
+  });
 };

@@ -147,7 +147,7 @@ export default function SelectTranslate() {
 
       await Promise.all(promises)
       setResults(translationResults)
-    } catch (err) {
+    } catch {
       setError('Translation failed. Please try again.')
     } finally {
       setLoading(false)

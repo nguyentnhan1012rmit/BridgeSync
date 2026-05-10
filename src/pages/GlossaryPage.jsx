@@ -1,32 +1,142 @@
-import { useState } from 'react'
+import { useDeferredValue, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Search, Plus, Loader2, AlertCircle, BookOpen } from 'lucide-react'
+import { Search, Plus, Loader2, AlertCircle, BookOpen, Upload, CheckCircle2 } from 'lucide-react'
 import { Card, Button, Modal } from '@/components/ui'
 import { useAuth } from '@/hooks/useAuth'
-import { getGlossary, addGlossaryTerm } from '@/api/glossary'
+import { getGlossary, addGlossaryTerm, importGlossaryTerms } from '@/api/glossary'
+
+const normalizeHeader = (value) => String(value || '').trim().toLowerCase().replace(/[\s_-]+/g, '')
+
+const getCell = (row, candidates) => {
+  const entries = Object.entries(row)
+  const found = entries.find(([key]) => candidates.includes(normalizeHeader(key)))
+  return found ? String(found[1] || '').trim() : ''
+}
+
+const mapRowsToTerms = (rows) => {
+  return rows.map((row) => ({
+    baseTerm: getCell(row, ['baseterm', 'term', 'keyword', 'source']),
+    translations: {
+      en: getCell(row, ['en', 'english', 'englishdefinition']),
+      vi: getCell(row, ['vi', 'vietnamese', 'vietnamesedefinition']),
+      ja: getCell(row, ['ja', 'jp', 'japanese', 'japanesedefinition']),
+    },
+  })).filter((term) => term.baseTerm || term.translations.en || term.translations.vi || term.translations.ja)
+}
+
+const parseCsvRows = (text) => {
+  const rows = []
+  let current = ''
+  let row = []
+  let inQuotes = false
+
+  for (let i = 0; i < text.length; i += 1) {
+    const char = text[i]
+    const next = text[i + 1]
+
+    if (char === '"' && next === '"') {
+      current += '"'
+      i += 1
+    } else if (char === '"') {
+      inQuotes = !inQuotes
+    } else if (char === ',' && !inQuotes) {
+      row.push(current)
+      current = ''
+    } else if ((char === '\n' || char === '\r') && !inQuotes) {
+      if (char === '\r' && next === '\n') i += 1
+      row.push(current)
+      rows.push(row)
+      row = []
+      current = ''
+    } else {
+      current += char
+    }
+  }
+
+  if (current || row.length) {
+    row.push(current)
+    rows.push(row)
+  }
+
+  const [headers = [], ...dataRows] = rows.filter((items) => items.some((item) => item.trim()))
+  return dataRows.map((items) => {
+    return headers.reduce((acc, header, index) => {
+      acc[header] = items[index] || ''
+      return acc
+    }, {})
+  })
+}
+
+const parseExcelRows = async (file) => {
+  if (file.name.toLowerCase().endsWith('.csv')) {
+    return parseCsvRows(await file.text())
+  }
+
+  const ExcelJSImport = await import('exceljs')
+  const ExcelJS = ExcelJSImport.default || ExcelJSImport
+  const workbook = new ExcelJS.Workbook()
+  await workbook.xlsx.load(await file.arrayBuffer())
+  const worksheet = workbook.worksheets[0]
+
+  if (!worksheet) return []
+
+  const headers = []
+  worksheet.getRow(1).eachCell({ includeEmpty: true }, (cell, columnNumber) => {
+    headers[columnNumber - 1] = cell.text || String(cell.value || '')
+  })
+
+  const rows = []
+  worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
+    if (rowNumber === 1) return
+
+    const item = {}
+    headers.forEach((header, index) => {
+      item[header] = row.getCell(index + 1).text || String(row.getCell(index + 1).value || '')
+    })
+    rows.push(item)
+  })
+
+  return rows
+}
 
 export default function GlossaryPage() {
   const { t } = useTranslation()
   const { user } = useAuth()
   const queryClient = useQueryClient()
+  const fileInputRef = useRef(null)
   const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
   const [showAdd, setShowAdd] = useState(false)
   const [form, setForm] = useState({ baseTerm: '', en: '', vi: '', ja: '' })
+  const [importResult, setImportResult] = useState(null)
+  const deferredSearch = useDeferredValue(search)
 
   // ── Fetch glossary ──
-  const { data: glossaryData = [], isLoading, isError, error } = useQuery({
-    queryKey: ['glossary'],
-    queryFn: getGlossary,
+  const { data: glossaryResponse = {}, isLoading, isError, error } = useQuery({
+    queryKey: ['glossaryPage', deferredSearch, page],
+    queryFn: () => getGlossary({ search: deferredSearch, page, limit: 20 }),
   })
+  const glossaryData = glossaryResponse.items || []
+  const pagination = glossaryResponse.pagination || { page: 1, total: 0, totalPages: 1, limit: 20 }
 
   // ── Add term ──
   const addMutation = useMutation({
     mutationFn: addGlossaryTerm,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['glossary'] })
+      queryClient.invalidateQueries({ queryKey: ['glossaryPage'] })
       setShowAdd(false)
       setForm({ baseTerm: '', en: '', vi: '', ja: '' })
+    },
+  })
+
+  const importMutation = useMutation({
+    mutationFn: importGlossaryTerms,
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['glossary'] })
+      queryClient.invalidateQueries({ queryKey: ['glossaryPage'] })
+      setImportResult(result)
     },
   })
 
@@ -39,16 +149,31 @@ export default function GlossaryPage() {
     })
   }
 
-  const filtered = glossaryData.filter((item) => {
-    if (!search) return true
-    const q = search.toLowerCase()
-    return (
-      item.baseTerm?.toLowerCase().includes(q) ||
-      item.translations?.en?.toLowerCase().includes(q) ||
-      item.translations?.vi?.toLowerCase().includes(q) ||
-      item.translations?.ja?.includes(search)
-    )
-  })
+  const handleImportClick = () => {
+    setImportResult(null)
+    fileInputRef.current?.click()
+  }
+
+  const handleImportFile = async (e) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+
+    if (!file) return
+
+    try {
+      const rows = await parseExcelRows(file)
+      const terms = mapRowsToTerms(rows)
+
+      if (terms.length === 0) {
+        setImportResult({ imported: 0, skipped: 0, invalid: 0, message: t('glossary.importNoRows') })
+        return
+      }
+
+      importMutation.mutate(terms)
+    } catch {
+      setImportResult({ imported: 0, skipped: 0, invalid: 0, message: t('glossary.importFailed') })
+    }
+  }
 
   return (
     <div style={{ maxWidth: '76rem' }}>
@@ -57,13 +182,25 @@ export default function GlossaryPage() {
         <div>
           <h1 style={{ fontSize: '1.25rem', fontWeight: 600, letterSpacing: '-0.02em' }} className="text-text-primary">{t('glossary.title')}</h1>
           <p style={{ fontSize: '0.875rem', marginTop: '2px' }} className="text-text-muted">
-            {isLoading ? t('common.loading') : `${glossaryData.length} trilingual terms`}
+            {isLoading ? t('common.loading') : `${pagination.total} trilingual terms`}
           </p>
         </div>
         {user?.role === 'BrSE' && (
-          <Button icon={Plus} onClick={() => setShowAdd(true)}>
-            {t('glossary.addTerm')}
-          </Button>
+          <div className="flex items-center gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv,.xlsx"
+              onChange={handleImportFile}
+              className="hidden"
+            />
+            <Button variant="secondary" icon={Upload} onClick={handleImportClick} disabled={importMutation.isPending}>
+              {importMutation.isPending ? t('common.loading') : t('glossary.importTerms')}
+            </Button>
+            <Button icon={Plus} onClick={() => setShowAdd(true)}>
+              {t('glossary.addTerm')}
+            </Button>
+          </div>
         )}
       </div>
 
@@ -75,7 +212,10 @@ export default function GlossaryPage() {
             type="text"
             placeholder={t('glossary.searchTerms')}
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value)
+              setPage(1)
+            }}
             className="form-input pl-8 text-sm"
           />
         </div>
@@ -86,6 +226,24 @@ export default function GlossaryPage() {
         <div className="flex items-center gap-2 p-3 bg-danger/5 border border-danger/10 rounded-lg text-sm text-danger">
           <AlertCircle size={15} />
           <span>{error?.message || 'Failed to load glossary'}</span>
+        </div>
+      )}
+
+      {(importResult || importMutation.isError) && (
+        <div className={`flex items-center gap-2 p-3 rounded-lg text-sm ${
+          importMutation.isError
+            ? 'bg-danger/5 border border-danger/10 text-danger'
+            : 'bg-success/5 border border-success/10 text-success'
+        }`}>
+          {importMutation.isError ? <AlertCircle size={15} /> : <CheckCircle2 size={15} />}
+          <span>
+            {importMutation.isError
+              ? importMutation.error?.message || t('glossary.importFailed')
+              : importResult?.message || t('glossary.importResult', {
+                  imported: importResult?.imported ?? 0,
+                  skipped: importResult?.skipped ?? 0,
+                })}
+          </span>
         </div>
       )}
 
@@ -110,7 +268,7 @@ export default function GlossaryPage() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((item) => (
+                {glossaryData.map((item) => (
                   <tr key={item._id}>
                     <td className="font-medium text-primary whitespace-nowrap">{item.baseTerm}</td>
                     <td className="text-text-primary">{item.translations?.en}</td>
@@ -118,7 +276,7 @@ export default function GlossaryPage() {
                     <td className="text-text-primary">{item.translations?.ja}</td>
                   </tr>
                 ))}
-                {filtered.length === 0 && (
+                {glossaryData.length === 0 && (
                   <tr>
                     <td colSpan={4}>
                       <div className="empty-state py-10">
@@ -132,6 +290,32 @@ export default function GlossaryPage() {
             </table>
           </div>
         </Card>
+      )}
+
+      {!isLoading && pagination.totalPages > 1 && (
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm text-text-muted">
+            Page {pagination.page} of {pagination.totalPages}
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={page <= 1}
+              onClick={() => setPage((current) => Math.max(current - 1, 1))}
+            >
+              Previous
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={page >= pagination.totalPages}
+              onClick={() => setPage((current) => Math.min(current + 1, pagination.totalPages))}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
       )}
 
       {/* Add term modal */}

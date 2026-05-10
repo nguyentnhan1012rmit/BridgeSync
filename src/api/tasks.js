@@ -21,6 +21,13 @@ export const createTask = (taskData) => {
   });
 };
 
+export const updateTask = (taskId, taskData) => {
+  return authFetch(`/tasks/${taskId}`, {
+    method: 'PUT',
+    body: JSON.stringify(taskData),
+  });
+};
+
 /**
  * Update the status of a task.
  * @route PUT /api/tasks/:taskId/status
@@ -31,5 +38,11 @@ export const updateTaskStatus = (taskId, status) => {
   return authFetch(`/tasks/${taskId}/status`, {
     method: 'PUT',
     body: JSON.stringify({ status }),
+  });
+};
+
+export const deleteTask = (taskId) => {
+  return authFetch(`/tasks/${taskId}`, {
+    method: 'DELETE',
   });
 };

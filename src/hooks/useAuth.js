@@ -2,7 +2,7 @@ import { useContext } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '@/context/AuthContext';
-import { loginUser, registerUser } from '@/api/auth';
+import { loginUser, logoutUser, registerUser } from '@/api/auth';
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -34,7 +34,13 @@ export const useAuth = () => {
     },
   });
 
-  const performLogout = () => {
+  const performLogout = async () => {
+    try {
+      await logoutUser();
+    } catch {
+      // Local logout should still succeed if the token is already expired/revoked.
+    }
+
     logout();
     navigate('/login');
   };

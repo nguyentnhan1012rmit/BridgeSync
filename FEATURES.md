@@ -25,15 +25,16 @@ BridgeSync contains core MVP features specifically designed to bridge the gap be
 
 **The Solution:** An interactive terminology system that provides instant, culturally and technically accurate translations on hover — backed by a live database.
 
-* **Implementation:** `TextHighlighter` component for auto-detection + `TranslateTooltip` for hover display, and `GlossaryPage` with full CRUD.
+* **Implementation:** `TextHighlighter` component for auto-detection + `TranslateTooltip` for hover display, and `GlossaryPage` with add/import/search workflows.
 * **Mechanics:**
     * The `TextHighlighter` component scans any text string for known glossary terms using regex with word-boundary detection.
     * Terms are sorted by length (descending) to ensure multi-word terms like "CI/CD Pipeline" match before "CI/CD".
     * Matched terms are rendered with a dashed underline via the `TranslateTooltip` component.
     * Hovering over a highlighted term reveals a portal-based tooltip showing the term's exact meaning in English, Vietnamese, and Japanese.
     * These definitions are sourced from a curated **IT Glossary** stored in MongoDB (`ITGlossary` collection), ensuring niche accuracy rather than relying on generic API translations.
-    * The `GlossaryPage` provides a **searchable table** for users to study or reference these terms, fetched live from `GET /api/glossary`.
+    * The `GlossaryPage` provides a **server-side searchable and paginated table** for users to study or reference these terms, fetched live from `GET /api/glossary`.
     * **BrSE-only: Add Term** — Users with the `BrSE` role can add new glossary terms via a modal form with trilingual inputs (`baseTerm`, English, Vietnamese, Japanese). This calls `POST /api/glossary`.
+    * **BrSE-only: CSV/XLSX Import** — BrSE users can upload glossary spreadsheets with `baseTerm`, English, Vietnamese, and Japanese columns. The frontend parses `.csv`/`.xlsx` with ExcelJS-backed import, the backend validates rows, normalizes duplicates case-insensitively, and returns imported/skipped counts via `POST /api/glossary/import`.
     * Terms are sorted alphabetically and searchable across all three languages.
 
 ### Test Accounts for This Feature
@@ -42,6 +43,7 @@ BridgeSync contains core MVP features specifically designed to bridge the gap be
 |--------|--------------|--------------|----------|
 | View glossary | Any authenticated | `dev@bridgesync.com` | `Test1234` |
 | Add new term | BrSE only | `brse@bridgesync.com` | `Test1234` |
+| Import CSV/XLSX terms | BrSE only | `brse@bridgesync.com` | `Test1234` |
 
 ---
 
@@ -84,7 +86,10 @@ BridgeSync contains core MVP features specifically designed to bridge the gap be
         * **連絡 (Renraku) — Contact/Share:** Information that needs to be shared with the broader team. (`sharedInformation` — optional)
         * **相談 (Soudan) — Consult:** Specific topics requiring stakeholder decisions, proposed options, and deadlines. (`topic`, `proposedOptions`, `deadline` — optional)
     * **Create Report Modal:** A structured form that enforces the Hourenso template. The `proposedOptions` field accepts comma-separated values and stores them as an array.
-    * **One-Click Export to Excel:** Uses the `xlsx` library to compile all reports for the selected project into a formatted Excel file with real data from the database.
+    * **Edit/Delete Reports:** PM, BrSE, and Developer roles can update or delete reports in accessible projects.
+    * **Template Quality Check:** The report form provides an instant rule-based quality check before submission, flagging weak status/progress/issue/next-step content and surfacing a score that helps presenters explain why the template improves stakeholder communication.
+    * **Project Language Preference:** The selected project's preferred reporting language is shown in the Hourenso workspace and included in Excel export rows.
+    * **One-Click Export to Excel:** Uses ExcelJS to compile all reports for the selected project into a formatted Excel file with real data from the database.
     * **Role Restriction:** Only `PM`, `BrSE`, and `Developer` roles can create reports. The `Japanese client` role is blocked from creating reports (view-only).
 
 ### Test Accounts for This Feature
@@ -106,9 +111,10 @@ BridgeSync contains core MVP features specifically designed to bridge the gap be
 * **Implementation:** `ProjectsPage` connected to `GET/POST/DELETE /api/projects`.
 * **Mechanics:**
     * **View Projects:** All authenticated users see projects scoped to their membership via `scopedProject` middleware.
-    * **Create Project:** PM and BrSE roles see a "New Project" button that opens a modal form with project name and description fields. Calls `POST /api/projects`.
+    * **Create Project:** PM and BrSE roles see a "New Project" button that opens a modal form with project name, description, and preferred reporting language fields. Calls `POST /api/projects`.
     * **Delete Project:** PM-only. A trash icon appears on each project card. Requires confirmation dialog. Calls `DELETE /api/projects/:id`.
-    * **Project Cards:** Display project name, description, status badge (Active/Archived), member count, and creation date.
+    * **Member Management:** PM users can add and remove project members from a project-scoped modal.
+    * **Project Cards:** Display project name, description, preferred language badge (EN/VI/JA), status badge (Active/Archived), member count, and creation date.
     * **Loading States:** Skeleton spinners while data loads. Error banners on API failures. Empty state for new users.
 
 ### Test Accounts for This Feature
@@ -133,6 +139,7 @@ BridgeSync contains core MVP features specifically designed to bridge the gap be
     * **Task List:** Displays task title, description, assignee name, status badge, and creation date.
     * **Status Cycling:** Click the status badge to cycle through: `ongoing` → `completed` → `delayed` → back to `ongoing`. Calls `PUT /api/tasks/:taskId/status`.
     * **Create Task:** PM and BrSE roles can create tasks via a modal form with title, description, and assignee dropdown (populated from project members via `GET /api/projects/:id/members`).
+    * **Edit/Delete Task:** PM and BrSE roles can update task title, description, assignee, or delete a task.
     * **Assignee Dropdown:** Shows all project members with their roles for easy assignment.
 
 ### Test Accounts for This Feature
@@ -186,8 +193,11 @@ BridgeSync contains core MVP features specifically designed to bridge the gap be
     * **JWT Token Flow:**
         * Login returns an access token (30min expiry) & refresh token (7 day expiry).
         * All protected API calls include `Authorization: Bearer <token>` header via the shared `apiClient.js`.
-        * Frontend stores token in `localStorage` and auto-injects via `authFetch()`.
-        * Automatic session expiry: 401 responses trigger the `auth-error` event, which the `AuthContext` listens for and performs a clean logout.
+        * Frontend stores token and refresh token in `localStorage` and auto-injects the access token via `authFetch()`.
+        * Expired access tokens trigger `/api/auth/refresh` once, retry the failed request with the new token, and only fall back to a clean logout when refresh fails.
+        * Refresh tokens are stored hashed in MongoDB and rotated on every refresh request.
+        * API responses use a consistent error shape with `message` and `error.code`.
+        * Helmet security headers and API rate limiting are enabled in Express.
 
 ---
 

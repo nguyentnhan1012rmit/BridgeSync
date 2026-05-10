@@ -10,7 +10,7 @@ const ITGlossary = require('./models/ITGlossary');
 
 async function seedData() {
   await mongoose.connect(process.env.DATABASE_URI);
-  console.log('Connected to BD for seeding');
+  console.log('Connected to DB for seeding');
   
   const testUser = await User.findOne({ email: 'testing@test.com' });
   if (!testUser) {
@@ -21,9 +21,9 @@ async function seedData() {
   console.log('User found! Creating mock data...');
   
   // Create 3 Projects
-  const project1 = await Project.create({ name: 'Alpha Migration', description: 'Migrate legacy infrastructure to AWS', status: 'active', members: [testUser._id] });
-  const project2 = await Project.create({ name: 'Beta Launch', description: 'Prepare for Q3 release', status: 'active', members: [testUser._id] });
-  const project3 = await Project.create({ name: 'Archive Zeta', description: 'Internal tool deprecation', status: 'archived', members: [testUser._id] });
+  const project1 = await Project.create({ name: 'Alpha Migration', description: 'Migrate legacy infrastructure to AWS', status: 'active', preferredLanguage: 'ja', members: [testUser._id] });
+  const project2 = await Project.create({ name: 'Beta Launch', description: 'Prepare for Q3 release', status: 'active', preferredLanguage: 'en', members: [testUser._id] });
+  await Project.create({ name: 'Archive Zeta', description: 'Internal tool deprecation', status: 'archived', preferredLanguage: 'vi', members: [testUser._id] });
   
   console.log('Projects created.');
   

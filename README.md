@@ -18,7 +18,7 @@ The MVP is built with a modern Full-Stack **MERN** architecture:
 * **State & Caching:** TanStack React Query (v5) + React Context (Auth)
 * **Internationalization (i18n):** react-i18next (EN / VI / JA)
 * **Icons:** Lucide React
-* **Excel Export:** SheetJS (xlsx)
+* **Excel Import/Export:** ExcelJS
 
 **Backend:**
 * **Server:** Node.js + Express (v5)
@@ -38,7 +38,7 @@ BridgeSync/
 │   │   ├── auth.js                   # Login / Register
 │   │   ├── projects.js               # CRUD for projects
 │   │   ├── tasks.js                  # CRUD for tasks
-│   │   ├── glossary.js               # GET/POST for glossary terms
+│   │   ├── glossary.js               # GET/POST/import for glossary terms
 │   │   ├── hourenso.js               # GET/POST for hourenso reports
 │   │   ├── translate.js              # POST for translation
 │   │   └── stats.js                  # GET dashboard statistics
@@ -67,8 +67,8 @@ BridgeSync/
 │   │   ├── DashboardPage.jsx         # Live stats + recent activity
 │   │   ├── ProjectsPage.jsx          # Project list + create/delete
 │   │   ├── TasksPage.jsx             # Task board + status cycling
-│   │   ├── GlossaryPage.jsx          # IT glossary table + add term
-│   │   ├── HourensoPage.jsx          # Hourenso reports + Excel export
+│   │   ├── GlossaryPage.jsx          # IT glossary table + CSV/XLSX import
+│   │   ├── HourensoPage.jsx          # Hourenso reports + quality check + Excel export
 │   │   ├── LoginPage.jsx
 │   │   ├── SignupPage.jsx
 │   │   └── SettingsPage.jsx          # Language & display preferences
@@ -81,7 +81,7 @@ BridgeSync/
 │   │   ├── authController.js         # Register, Login, Logout, Refresh
 │   │   ├── projectController.js      # CRUD for projects
 │   │   ├── taskController.js         # CRUD for tasks
-│   │   ├── glossaryController.js     # GET/POST for glossary
+│   │   ├── glossaryController.js     # GET/POST/import for glossary
 │   │   ├── hourensoController.js     # GET/POST for hourenso reports
 │   │   ├── translationController.js  # Glossary-first + DeepL fallback
 │   │   └── statsController.js        # Aggregated dashboard statistics
@@ -104,12 +104,17 @@ BridgeSync/
 │   │   ├── hourensoRoutes.js
 │   │   ├── translationRoutes.js
 │   │   └── statsRoutes.js
+│   ├── tests/                        # RBAC and API integration tests
+│   ├── app.js                        # Express app composition
 │   ├── seed_user_data.js             # Database seeding script (dev utility)
-│   ├── server.js                     # Express app entry point
+│   ├── server.js                     # Database connection + listen entry point
 │   ├── .env.example                  # Environment variable template
 │   └── .env                          # Environment variables (git-ignored)
 ├── public/
 │   └── favicon.svg                   # App favicon
+├── docs/
+│   ├── DEPLOYMENT.md                 # Cloud deployment guide
+│   └── UAT_CHECKLIST.md              # Demo/UAT checklist
 ├── package.json                      # Frontend dependencies + scripts
 ├── vite.config.js                    # Vite config with API proxy
 ├── eslint.config.js                  # ESLint configuration
@@ -160,6 +165,7 @@ REFRESH_TOKEN_SECRET=<your-refresh-token-secret>
 JWT_EXPIRES_IN=30m
 DEEPL_API_URL=https://api-free.deepl.com/v2/translate
 DEEPL_API_KEY=<your-deepl-api-key>
+FRONTEND_ORIGIN=http://localhost:5173
 ```
 
 ### 3. Start the development server
@@ -175,6 +181,21 @@ This starts both the Vite frontend (port 5173) and Express backend (port 3000) c
 ```bash
 npm run build
 ```
+
+### 5. Quality checks
+
+```bash
+npm run lint
+npm test
+npm run build
+```
+
+### 6. QA and deployment references
+
+- Manual UAT/demo checklist: [`docs/UAT_CHECKLIST.md`](docs/UAT_CHECKLIST.md)
+- Role-based demo script and screenshot list: [`docs/ROLE_BASED_DEMO_SCRIPT.md`](docs/ROLE_BASED_DEMO_SCRIPT.md)
+- Technical and feature report draft: [`docs/TECHNICAL_AND_FEATURE_REPORT.md`](docs/TECHNICAL_AND_FEATURE_REPORT.md)
+- Cloud deployment guide: [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)
 
 ---
 
@@ -208,7 +229,10 @@ You can register new accounts via the Signup page (`/signup`). Choose from the f
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
 | POST | `/api/auth/register` | Register new user | Public |
-| POST | `/api/auth/login` | Login (returns JWT) | Public |
+| POST | `/api/auth/login` | Login (returns access + refresh token) | Public |
+| POST | `/api/auth/refresh` | Refresh access token | Public |
+| POST | `/api/auth/logout` | Logout / revoke refresh token | Authenticated |
+| GET | `/api/auth/users` | List users for member assignment | PM, BrSE |
 
 ### Projects
 | Method | Endpoint | Description | Roles |
@@ -218,25 +242,32 @@ You can register new accounts via the Signup page (`/signup`). Choose from the f
 | POST | `/api/projects` | Create project | PM, BrSE |
 | DELETE | `/api/projects/:id` | Delete project | PM |
 | GET | `/api/projects/:id/members` | Get project members | All authenticated |
+| POST | `/api/projects/:id/members` | Add project member | PM |
+| DELETE | `/api/projects/:id/members/:userId` | Remove project member | PM |
 
 ### Tasks
 | Method | Endpoint | Description | Roles |
 |--------|----------|-------------|-------|
 | GET | `/api/tasks/:projectId` | Get tasks for a project | All authenticated |
 | POST | `/api/tasks` | Create task | PM, BrSE |
+| PUT | `/api/tasks/:taskId` | Edit task details | PM, BrSE |
 | PUT | `/api/tasks/:taskId/status` | Update task status | PM, BrSE, Developer |
+| DELETE | `/api/tasks/:taskId` | Delete task | PM, BrSE |
 
 ### IT Glossary
 | Method | Endpoint | Description | Roles |
 |--------|----------|-------------|-------|
-| GET | `/api/glossary` | List all glossary terms | All authenticated |
+| GET | `/api/glossary` | List/search glossary terms with optional pagination | All authenticated |
 | POST | `/api/glossary` | Add new term | BrSE |
+| POST | `/api/glossary/import` | Import glossary terms from parsed CSV/XLSX rows | BrSE |
 
 ### Hourenso Reports
 | Method | Endpoint | Description | Roles |
 |--------|----------|-------------|-------|
 | GET | `/api/hourenso/:projectId` | Get reports by project | All authenticated |
 | POST | `/api/hourenso` | Create report | PM, BrSE, Developer |
+| PUT | `/api/hourenso/reports/:reportId` | Edit report | PM, BrSE, Developer |
+| DELETE | `/api/hourenso/reports/:reportId` | Delete report | PM, BrSE, Developer |
 
 ### Translation
 | Method | Endpoint | Description | Roles |
@@ -258,9 +289,9 @@ For a detailed breakdown of all features, please see the [FEATURES.md](./FEATURE
 1. **Bilingual Dual-View Interface** — Instant EN/VI/JA switching via react-i18next
 2. **Smart Hover-to-Translate** — Auto-detection and highlighting of IT glossary terms with trilingual tooltips
 3. **Select-to-Translate** — Select any text and get instant translations via IT Glossary + DeepL
-4. **Automated Hourenso Templates** — Structured 報連相 reporting with Excel export
-5. **Project Management with RBAC** — Role-based project creation, deletion, and scoping
-6. **Task Management with Status Cycling** — Inline status cycling (ongoing → completed → delayed)
+4. **Automated Hourenso Templates** — Structured 報連相 reporting with quality check and Excel export
+5. **Project Management with RBAC** — Role-based project creation, deletion, scoping, and project language preference
+6. **Task Management with Status Cycling** — Create, edit, delete, and inline status cycling
 7. **Live Dashboard** — Aggregated stats with auto-refresh
 8. **Secure Backend** — JWT auth, role middleware, translation API proxying
 
@@ -292,13 +323,17 @@ BridgeSync features a premium, modern design system built on Tailwind CSS v4:
 | View Projects | ✅ | ✅ | ✅ | ✅ |
 | Create Project | ✅ | ✅ | ❌ | ❌ |
 | Delete Project | ✅ | ❌ | ❌ | ❌ |
+| Add/Remove Project Members | ✅ | ❌ | ❌ | ❌ |
 | View Tasks | ✅ | ✅ | ✅ | ✅ |
 | Create Task | ✅ | ✅ | ❌ | ❌ |
+| Edit/Delete Task | ✅ | ✅ | ❌ | ❌ |
 | Update Task Status | ✅ | ✅ | ✅ | ❌ |
 | View Glossary | ✅ | ✅ | ✅ | ✅ |
 | Add Glossary Term | ❌ | ✅ | ❌ | ❌ |
+| Import Glossary Terms | ❌ | ✅ | ❌ | ❌ |
 | View Reports | ✅ | ✅ | ✅ | ✅ |
 | Create Report | ✅ | ✅ | ✅ | ❌ |
+| Edit/Delete Report | ✅ | ✅ | ✅ | ❌ |
 | Export Reports (Excel) | ✅ | ✅ | ✅ | ✅ |
 | Select-to-Translate | ✅ | ✅ | ✅ | ✅ |
 | Hover-to-Translate | ✅ | ✅ | ✅ | ✅ |
