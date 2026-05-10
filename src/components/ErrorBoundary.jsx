@@ -1,6 +1,7 @@
 import React from 'react'
 import { AlertTriangle, RotateCcw } from 'lucide-react'
 import { Button, Card } from '@/components/ui'
+import i18n from '@/i18n'
 
 export default class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -30,13 +31,13 @@ export default class ErrorBoundary extends React.Component {
             <AlertTriangle size={22} />
           </div>
           <div>
-            <h1 className="text-lg font-semibold text-text-primary">Something went wrong</h1>
+            <h1 className="text-lg font-semibold text-text-primary">{i18n.t('error.title')}</h1>
             <p className="text-sm text-text-muted mt-1">
-              BridgeSync hit an unexpected UI error. Reloading usually restores the session.
+              {i18n.t('error.description')}
             </p>
           </div>
           <Button icon={RotateCcw} onClick={this.handleReload}>
-            Reload
+            {i18n.t('error.reload')}
           </Button>
         </Card>
       </div>

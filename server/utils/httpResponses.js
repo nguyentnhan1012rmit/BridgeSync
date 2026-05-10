@@ -10,7 +10,8 @@ const sendError = (res, status, message, code = 'REQUEST_ERROR', details) => {
 };
 
 const sendServerError = (res, error) => {
-  return sendError(res, 500, error.message || 'Internal server error', 'INTERNAL_SERVER_ERROR');
+  console.error('[Server Error]', error);
+  return sendError(res, 500, 'Internal server error', 'INTERNAL_SERVER_ERROR');
 };
 
 module.exports = {

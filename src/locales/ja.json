@@ -127,5 +127,18 @@
     "en": "English",
     "vi": "Tiếng Việt",
     "ja": "日本語"
+  },
+  "settings": {
+    "subtitle": "設定を変更する",
+    "languageDescription": "お好みのインターフェース言語を選択してください"
+  },
+  "activity": {
+    "submittedReport": "がレポートを提出しました",
+    "forProject": "プロジェクト"
+  },
+  "error": {
+    "title": "エラーが発生しました",
+    "description": "BridgeSyncで予期しないUIエラーが発生しました。ページを再読み込みすると通常復旧します。",
+    "reload": "再読み込み"
   }
 }

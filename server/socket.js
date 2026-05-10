@@ -1,4 +1,6 @@
 const { Server } = require('socket.io');
+const jwt = require('jsonwebtoken');
+const { logger } = require('./utils/logger');
 
 let io = null;
 
@@ -18,11 +20,29 @@ const initSocket = (httpServer) => {
     },
   });
 
+  // JWT authentication middleware
+  io.use((socket, next) => {
+    const token = socket.handshake.auth?.token;
+
+    if (!token) {
+      return next(new Error('Authentication required'));
+    }
+
+    try {
+      const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+      socket.userId = decoded.id;
+      socket.userRole = decoded.role;
+      next();
+    } catch {
+      next(new Error('Invalid or expired token'));
+    }
+  });
+
   io.on('connection', (socket) => {
-    console.log(`[Socket.io] Client connected: ${socket.id}`);
+    logger.info({ socketId: socket.id, userId: socket.userId }, 'Socket.io client connected');
 
     socket.on('disconnect', () => {
-      console.log(`[Socket.io] Client disconnected: ${socket.id}`);
+      logger.info({ socketId: socket.id }, 'Socket.io client disconnected');
     });
   });
 

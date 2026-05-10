@@ -25,7 +25,6 @@ const apiLimiter = rateLimit({
   limit: 300,
   standardHeaders: 'draft-8',
   legacyHeaders: false,
-  skip: (req) => !req.socket,
   handler: (req, res) => sendError(res, 429, 'Too many requests, please try again later', 'RATE_LIMITED'),
 });
 

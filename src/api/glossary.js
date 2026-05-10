@@ -1,7 +1,7 @@
 import { authFetch } from './apiClient';
 
 /**
- * Fetch all glossary terms, sorted alphabetically by baseTerm.
+ * Fetch glossary terms (paginated). Always returns { items, pagination }.
  * @route GET /api/glossary
  */
 export const getGlossary = (params = {}) => {
@@ -14,6 +14,15 @@ export const getGlossary = (params = {}) => {
 
   const queryString = query.toString();
   return authFetch(`/glossary${queryString ? `?${queryString}` : ''}`);
+};
+
+/**
+ * Fetch all glossary terms as a flat array (for TextHighlighter).
+ * Uses a large page size to retrieve all terms in one request.
+ */
+export const getAllGlossaryTerms = async () => {
+  const data = await getGlossary({ limit: 500 });
+  return data.items || [];
 };
 
 /**

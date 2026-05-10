@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 import { Card, Button, TextHighlighter } from '@/components/ui'
 import { getDashboardStats } from '@/api/stats'
-import { getGlossary } from '@/api/glossary'
+import { getAllGlossaryTerms } from '@/api/glossary'
 
 export default function DashboardPage() {
   const { t } = useTranslation()
@@ -28,7 +28,7 @@ export default function DashboardPage() {
   // ── Fetch glossary terms ──
   const { data: glossaryTerms = [] } = useQuery({
     queryKey: ['glossary'],
-    queryFn: getGlossary,
+    queryFn: getAllGlossaryTerms,
   })
 
   const statsConfig = [
@@ -106,9 +106,9 @@ export default function DashboardPage() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-text-primary leading-tight">
                     <span className="font-medium">{report.authorId?.name || 'Someone'}</span>
-                    {' submitted a report'}
+                    {' '}{t('activity.submittedReport')}
                     {report.projectId?.name && (
-                      <> for <span className="font-medium text-primary">{report.projectId.name}</span></>
+                      <> {t('activity.forProject')} <span className="font-medium text-primary">{report.projectId.name}</span></>
                     )}
                   </p>
                   {report.houkoku?.currentStatus && (

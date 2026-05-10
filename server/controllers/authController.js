@@ -101,14 +101,18 @@ async function loginUser(req, res) {
 };
 
 const logoutUser = async (req, res) => {
-    const user = await User.findById(req.user._id);
+    try {
+        const user = await User.findById(req.user._id);
 
-    if (user) {
-        user.refreshTokenHash = null;
-        await user.save();
+        if (user) {
+            user.refreshTokenHash = null;
+            await user.save();
+        }
+
+        res.json({ message: 'Logged out successfully' });
+    } catch (error) {
+        sendServerError(res, error);
     }
-
-    res.json({ message: 'Logged out successfully' });
 }
 
 

@@ -1,4 +1,5 @@
 import { createContext, useState, useEffect, useCallback } from 'react';
+import { connectSocket, disconnectSocket } from '@/socket';
 
 export const AuthContext = createContext({
   user: null,
@@ -40,6 +41,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('refreshToken', newRefreshToken);
     }
     localStorage.setItem('user', JSON.stringify(newUser));
+    connectSocket();
   };
 
   const logout = useCallback(() => {
@@ -49,6 +51,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
+    disconnectSocket();
   }, []);
 
   useEffect(() => {
@@ -62,6 +65,11 @@ export const AuthProvider = ({ children }) => {
 
     window.addEventListener('auth-error', handleAuthError);
     window.addEventListener('token-refresh', handleTokenRefresh);
+
+    // Connect socket if already authenticated on mount
+    if (localStorage.getItem('token')) {
+      connectSocket();
+    }
 
     return () => {
       window.removeEventListener('auth-error', handleAuthError);

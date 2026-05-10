@@ -7,7 +7,7 @@ import { Card, Button, Modal, TextHighlighter } from '@/components/ui'
 import { useAuth } from '@/hooks/useAuth'
 import { getTasksByProject, createTask, updateTask, updateTaskStatus, deleteTask } from '@/api/tasks'
 import { getProjects, getProjectMembers } from '@/api/projects'
-import { getGlossary } from '@/api/glossary'
+import { getAllGlossaryTerms } from '@/api/glossary'
 
 const statusConfig = {
   ongoing:   { bg: 'oklch(0.52 0.10 240 / 0.1)', fg: 'oklch(0.42 0.10 240)', dot: 'oklch(0.52 0.10 240)' },
@@ -49,7 +49,7 @@ export default function TasksPage() {
   // ── Fetch glossary terms ──
   const { data: glossaryTerms = [] } = useQuery({
     queryKey: ['glossary'],
-    queryFn: getGlossary,
+    queryFn: getAllGlossaryTerms,
   })
 
   // ── Create task ──

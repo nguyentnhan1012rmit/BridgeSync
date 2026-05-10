@@ -3,10 +3,12 @@ const router = express.Router();
 const { getProjects, createProject, deleteProject, getOneProject, getProjectMembers, addProjectMember, removeProjectMember } = require('../controllers/projectController')
 const { protect, authorize } = require('../middleware/authMiddleware')
 const { setProject, authGetProject } = require('../middleware/projectMiddleware')
+const { validate } = require('../middleware/validate')
+const { createProjectSchema } = require('../validators/projectValidator')
 
 router.route('/')
     .get(protect, getProjects)
-    .post(protect, authorize('PM', 'BrSE'), createProject);
+    .post(protect, authorize('PM', 'BrSE'), validate(createProjectSchema), createProject);
 
 router.route('/:projectId')
     .delete(protect, authorize('PM'), setProject, authGetProject, deleteProject)

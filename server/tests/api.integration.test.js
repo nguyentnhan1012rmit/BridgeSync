@@ -55,6 +55,14 @@ const request = async (path, options = {}) => {
     ...options.headers,
   };
 
+  // Provide mock socket/connection as a real stream that Express middleware expects
+  const { Duplex } = require('node:stream');
+  const mockSocket = new Duplex({ read() {}, write(_, __, cb) { cb(); } });
+  mockSocket.remoteAddress = '127.0.0.1';
+  req.socket = mockSocket;
+  req.connection = mockSocket;
+  req.ip = '127.0.0.1';
+
   return new Promise((resolve, reject) => {
     let responseBody = '';
     const headers = {};
@@ -169,7 +177,7 @@ test('PUT /api/tasks/:taskId/status rejects invalid status enum', async () => {
     });
 
     assert.equal(response.status, 400);
-    assert.match(response.data.message, /Invalid task status/);
+    assert.match(response.data.message, /Validation failed/);
   } finally {
     restoreMethods();
   }
@@ -324,7 +332,7 @@ test('POST /api/projects rejects invalid preferred language', async () => {
     });
 
     assert.equal(response.status, 400);
-    assert.match(response.data.message, /Invalid preferred language/);
+    assert.match(response.data.message, /Validation failed/);
   } finally {
     restoreMethods();
   }

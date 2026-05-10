@@ -42,28 +42,24 @@ const getGlossary = async (req, res) => {
             }
             : {};
 
-        if (page || limit || trimmedSearch) {
-            const pageNumber = Math.max(Number.parseInt(page || '1', 10), 1);
-            const pageSize = Math.min(Math.max(Number.parseInt(limit || '20', 10), 1), 100);
-            const skip = (pageNumber - 1) * pageSize;
-            const [items, total] = await Promise.all([
-                ITGlossary.find(filter).sort({ baseTerm: 1 }).skip(skip).limit(pageSize).lean(),
-                ITGlossary.countDocuments(filter),
-            ]);
+        const pageNumber = Math.max(Number.parseInt(page || '1', 10), 1);
+        const pageSize = Math.min(Math.max(Number.parseInt(limit || '50', 10), 1), 100);
+        const skip = (pageNumber - 1) * pageSize;
 
-            return res.json({
-                items,
-                pagination: {
-                    page: pageNumber,
-                    limit: pageSize,
-                    total,
-                    totalPages: Math.max(Math.ceil(total / pageSize), 1),
-                },
-            });
-        }
+        const [items, total] = await Promise.all([
+            ITGlossary.find(filter).sort({ baseTerm: 1 }).skip(skip).limit(pageSize).lean(),
+            ITGlossary.countDocuments(filter),
+        ]);
 
-        const terms = await ITGlossary.find(filter).sort({ baseTerm: 1 }).lean();
-        res.json(terms)
+        res.json({
+            items,
+            pagination: {
+                page: pageNumber,
+                limit: pageSize,
+                total,
+                totalPages: Math.max(Math.ceil(total / pageSize), 1),
+            },
+        });
     } catch (error) {
         sendServerError(res, error)
     }

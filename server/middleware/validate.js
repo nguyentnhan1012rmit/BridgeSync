@@ -11,7 +11,8 @@ const validate = (schema) => (req, res, next) => {
     next();
   } catch (err) {
     if (err instanceof z.ZodError) {
-      const formattedErrors = err.errors.map((e) => ({
+      const issues = err.issues || [];
+      const formattedErrors = issues.map((e) => ({
         path: e.path.join('.'),
         message: e.message,
       }));

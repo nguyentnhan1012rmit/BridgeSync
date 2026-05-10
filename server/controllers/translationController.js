@@ -1,6 +1,7 @@
 const axios = require('axios');
 const ITGlossary = require('../models/ITGlossary');
 const { sendError, sendServerError } = require('../utils/httpResponses');
+const { logger } = require('../utils/logger');
 
 // @desc    Translate text (Checks Glossary first, then falls back to API)
 // @route   POST /api/translate
@@ -70,8 +71,7 @@ const translateText = async (req, res) => {
                 source: 'DeepL API'
             });
         } catch (deeplError) {
-            const errMsg = deeplError.response?.data?.message || deeplError.message;
-            console.error('DeepL API Error:', errMsg);
+            logger.warn({ err: deeplError }, 'DeepL API Error');
 
             // Return original text gracefully instead of crashing with 500
             return res.json({
@@ -82,7 +82,7 @@ const translateText = async (req, res) => {
         }
 
     } catch (error) {
-        console.error('Translation API Error:', error.message);
+        logger.error({ err: error }, 'Translation API Error');
         sendServerError(res, error);
     }
 };

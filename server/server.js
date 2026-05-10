@@ -3,15 +3,16 @@ const mongoose = require('mongoose');
 const http = require('http');
 const app = require('./app');
 const { initSocket } = require('./socket');
+const { logger } = require('./utils/logger');
 
 const PORT = process.env.PORT || 3000;
 
 const connectDB = async () => {
   try {
     await mongoose.connect(process.env.DATABASE_URI);
-    console.log('Database connected');
+    logger.info('Database connected');
   } catch (err) {
-    console.error('Database connection failed:', err.message);
+    logger.fatal({ err }, 'Database connection failed');
     process.exit(1);
   }
 };
@@ -21,4 +22,4 @@ connectDB();
 const server = http.createServer(app);
 initSocket(server);
 
-server.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+server.listen(PORT, () => logger.info(`Server started on port ${PORT}`));

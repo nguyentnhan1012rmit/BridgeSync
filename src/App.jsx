@@ -15,10 +15,11 @@ const GlossaryPage = lazy(() => import('@/pages/GlossaryPage'))
 const SettingsPage = lazy(() => import('@/pages/SettingsPage'))
 const LoginPage = lazy(() => import('@/pages/LoginPage'))
 const SignupPage = lazy(() => import('@/pages/SignupPage'))
+const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'))
 
 const routeFallback = (
-  <div className="min-h-screen flex items-center justify-center text-sm text-text-muted">
-    Loading...
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
   </div>
 )
 
@@ -41,6 +42,8 @@ export default function App() {
               <Route path="glossary" element={<GlossaryPage />} />
               <Route path="settings" element={<SettingsPage />} />
             </Route>
+
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Suspense>
       </ErrorBoundary>

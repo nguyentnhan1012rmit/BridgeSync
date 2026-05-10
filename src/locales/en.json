@@ -127,5 +127,18 @@
     "en": "English",
     "vi": "Tiếng Việt",
     "ja": "日本語"
+  },
+  "settings": {
+    "subtitle": "Configure your preferences",
+    "languageDescription": "Select your preferred interface language"
+  },
+  "activity": {
+    "submittedReport": "submitted a report",
+    "forProject": "for"
+  },
+  "error": {
+    "title": "Something went wrong",
+    "description": "BridgeSync hit an unexpected UI error. Reloading usually restores the session.",
+    "reload": "Reload"
   }
 }

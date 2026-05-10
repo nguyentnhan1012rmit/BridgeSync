@@ -127,5 +127,18 @@
     "en": "English",
     "vi": "Tiếng Việt",
     "ja": "日本語"
+  },
+  "settings": {
+    "subtitle": "Tùy chỉnh thiết lập của bạn",
+    "languageDescription": "Chọn ngôn ngữ giao diện ưa thích"
+  },
+  "activity": {
+    "submittedReport": "đã gửi báo cáo",
+    "forProject": "cho"
+  },
+  "error": {
+    "title": "Đã xảy ra lỗi",
+    "description": "BridgeSync gặp lỗi giao diện không mong muốn. Tải lại trang thường giải quyết vấn đề.",
+    "reload": "Tải lại"
   }
 }
