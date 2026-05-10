@@ -16,15 +16,23 @@ The MVP is built with a modern Full-Stack **MERN** architecture:
 * **Core:** React (v19) + Vite (v8)
 * **Styling:** Tailwind CSS (v4) with custom design system (oklch color palette, glassmorphism, micro-animations)
 * **State & Caching:** TanStack React Query (v5) + React Context (Auth)
+* **Real-Time:** Socket.io client with JWT-authenticated connections
 * **Internationalization (i18n):** react-i18next (EN / VI / JA)
+* **Notifications:** Sonner toast notifications
 * **Icons:** Lucide React
 * **Excel Import/Export:** ExcelJS
+* **Testing:** Vitest + Testing Library (18 unit tests)
 
 **Backend:**
 * **Server:** Node.js + Express (v5)
 * **Database:** MongoDB Atlas + Mongoose (v9)
 * **Authentication:** JSON Web Tokens (JWT) & bcrypt
+* **Real-Time:** Socket.io with JWT-authenticated handshake
+* **Validation:** Zod schemas on all API routes
+* **Security:** Helmet, CORS with credentials, express-rate-limit
+* **Logging:** Pino structured JSON logger
 * **External APIs:** DeepL API integration for dynamic translation fallback
+* **Testing:** Node.js native test runner (RBAC + API integration, 19 tests)
 
 ---
 
@@ -38,7 +46,7 @@ BridgeSync/
 │   │   ├── auth.js                   # Login / Register
 │   │   ├── projects.js               # CRUD for projects
 │   │   ├── tasks.js                  # CRUD for tasks
-│   │   ├── glossary.js               # GET/POST/import for glossary terms
+│   │   ├── glossary.js               # CRUD + import for glossary terms
 │   │   ├── hourenso.js               # GET/POST for hourenso reports
 │   │   ├── translate.js              # POST for translation
 │   │   └── stats.js                  # GET dashboard statistics
@@ -51,10 +59,11 @@ BridgeSync/
 │   │   │   ├── TextHighlighter.jsx   # Auto glossary term highlighter
 │   │   │   ├── TranslateTooltip.jsx  # Hover tooltip for glossary terms
 │   │   │   └── index.js              # Barrel exports
+│   │   ├── ErrorBoundary.jsx         # Global error boundary (i18n)
 │   │   ├── LanguageToggle.jsx        # EN/VI/JA language switcher
 │   │   └── ProtectedRoute.jsx        # Auth guard for routes
 │   ├── context/
-│   │   └── AuthContext.jsx           # JWT auth state (token + user)
+│   │   └── AuthContext.jsx           # JWT auth state (token + user + socket)
 │   ├── hooks/
 │   │   └── useAuth.js                # Auth hook (login/register/logout)
 │   ├── layouts/
@@ -65,13 +74,16 @@ BridgeSync/
 │   │   └── ja.json
 │   ├── pages/
 │   │   ├── DashboardPage.jsx         # Live stats + recent activity
-│   │   ├── ProjectsPage.jsx          # Project list + create/delete
+│   │   ├── ProjectsPage.jsx          # Project list + create/edit/delete
 │   │   ├── TasksPage.jsx             # Task board + status cycling
-│   │   ├── GlossaryPage.jsx          # IT glossary table + CSV/XLSX import
+│   │   ├── GlossaryPage.jsx          # IT glossary CRUD + CSV/XLSX import
 │   │   ├── HourensoPage.jsx          # Hourenso reports + quality check + Excel export
+│   │   ├── ProfilePage.jsx           # User profile page
+│   │   ├── NotFoundPage.jsx          # 404 catch-all page
 │   │   ├── LoginPage.jsx
 │   │   ├── SignupPage.jsx
 │   │   └── SettingsPage.jsx          # Language & display preferences
+│   ├── socket.js                     # Socket.io client (JWT auth)
 │   ├── App.jsx                       # Route definitions
 │   ├── main.jsx                      # Entry point (React Query + i18n)
 │   ├── i18n.js                       # i18next configuration
@@ -79,15 +91,23 @@ BridgeSync/
 ├── server/                           # Backend (Express + MongoDB)
 │   ├── controllers/
 │   │   ├── authController.js         # Register, Login, Logout, Refresh
-│   │   ├── projectController.js      # CRUD for projects
+│   │   ├── projectController.js      # CRUD for projects (incl. update)
 │   │   ├── taskController.js         # CRUD for tasks
-│   │   ├── glossaryController.js     # GET/POST/import for glossary
+│   │   ├── glossaryController.js     # CRUD + import for glossary
 │   │   ├── hourensoController.js     # GET/POST for hourenso reports
 │   │   ├── translationController.js  # Glossary-first + DeepL fallback
 │   │   └── statsController.js        # Aggregated dashboard statistics
 │   ├── middleware/
 │   │   ├── authMiddleware.js         # JWT protect + role-based authorize
-│   │   └── projectMiddleware.js      # Project-scoped access
+│   │   ├── projectMiddleware.js      # Project-scoped access
+│   │   ├── validate.js               # Zod validation middleware
+│   │   └── errorMiddleware.js        # 404 + global error handler
+│   ├── validators/                   # Zod schemas per resource
+│   │   ├── authValidator.js          # Register/login + password strength
+│   │   ├── projectValidator.js       # Create/update project
+│   │   ├── taskValidator.js          # Create/update/status tasks
+│   │   ├── glossaryValidator.js      # Add/update/import glossary
+│   │   └── hourensoValidator.js      # Create/update hourenso
 │   ├── models/
 │   │   ├── Users.js                  # User schema (name, email, role)
 │   │   ├── Projects.js              # Project schema (name, status, members)
@@ -105,7 +125,11 @@ BridgeSync/
 │   │   ├── translationRoutes.js
 │   │   └── statsRoutes.js
 │   ├── tests/                        # RBAC and API integration tests
+│   ├── utils/
+│   │   ├── httpResponses.js          # Standardized API response helpers
+│   │   └── logger.js                 # Pino structured logger
 │   ├── app.js                        # Express app composition
+│   ├── socket.js                     # Socket.io server (JWT auth middleware)
 │   ├── seed_user_data.js             # Database seeding script (dev utility)
 │   ├── server.js                     # Database connection + listen entry point
 │   ├── .env.example                  # Environment variable template
@@ -185,8 +209,16 @@ npm run build
 ### 5. Quality checks
 
 ```bash
+# Lint (ESLint)
 npm run lint
-npm test
+
+# Frontend unit tests (Vitest — 18 tests)
+npm run test:ui
+
+# Backend tests (RBAC + API integration — 19 tests)
+cd server && node --test tests/rbac.test.js tests/api.integration.test.js
+
+# Production build
 npm run build
 ```
 
@@ -199,13 +231,24 @@ npm run build
 
 ---
 
-## ✅ Recent UAT & Verification Status
+## ✅ Verification Status
 
-The application has successfully passed the **Final UAT (User Acceptance Testing) Verification**:
-- **Infrastructure:** Verified concurrent frontend/backend initialization (`npm run dev`) with proper `helmet` and `mongoose` dependencies. Quality checks (`npm run lint`, `npm test`, `npm run build`) all pass.
-- **RBAC & Authorization:** Verified that the API correctly enforces role-based access control. Creation and deletion endpoints (`POST`, `PUT`, `DELETE`) for Projects, Tasks, and Hourenso reports are strictly blocked (yielding `403 Forbidden`) for the `Japanese client` role.
-- **UI Cleanup:** Cleaned up the `DashboardPage` so that Quick Action buttons (New Project, New Task, New Report) are conditionally hidden based on the user's role, preventing unauthorized users (like Developers or Clients) from seeing actions they cannot perform.
-- **Deployment Ready:** The application is verified and structurally ready for production deployment to Vercel (Frontend) and Render/Railway (Backend).
+The application has passed all quality gates:
+
+| Check | Result |
+|-------|--------|
+| ESLint | ✅ 0 errors, 0 warnings |
+| Frontend unit tests (Vitest) | ✅ 18/18 pass (Button, Card, Modal, NotFoundPage) |
+| RBAC unit tests | ✅ 9/9 pass |
+| API integration tests | ✅ 10/10 pass |
+| Production build | ✅ Successful |
+
+**Key hardening completed:**
+- **Security:** Zod validation on all API routes, JWT-authenticated Socket.io, Helmet headers, CORS credentials, rate limiting, password strength enforcement (uppercase + digit)
+- **Code Quality:** Structured Pino logging (zero `console.log`), consistent API error shapes, dead code removed
+- **i18n:** All UI strings translated across 3 locales (EN/VI/JA), including error states
+- **Infrastructure:** `.env.example` template, `dist/` excluded from git, proper dependency classification
+- **Deployment Ready:** Verified and structurally ready for production deployment to Vercel (Frontend) and Render/Railway (Backend)
 
 ---
 
@@ -250,6 +293,7 @@ You can register new accounts via the Signup page (`/signup`). Choose from the f
 | GET | `/api/projects` | List projects (scoped by user) | All authenticated |
 | GET | `/api/projects/:id` | Get single project | All authenticated |
 | POST | `/api/projects` | Create project | PM, BrSE |
+| PUT | `/api/projects/:id` | Update project details | PM, BrSE |
 | DELETE | `/api/projects/:id` | Delete project | PM |
 | GET | `/api/projects/:id/members` | Get project members | All authenticated |
 | POST | `/api/projects/:id/members` | Add project member | PM |
@@ -267,8 +311,10 @@ You can register new accounts via the Signup page (`/signup`). Choose from the f
 ### IT Glossary
 | Method | Endpoint | Description | Roles |
 |--------|----------|-------------|-------|
-| GET | `/api/glossary` | List/search glossary terms with optional pagination | All authenticated |
+| GET | `/api/glossary` | List/search glossary terms (paginated) | All authenticated |
 | POST | `/api/glossary` | Add new term | BrSE |
+| PUT | `/api/glossary/:termId` | Update a glossary term | BrSE |
+| DELETE | `/api/glossary/:termId` | Delete a glossary term | BrSE |
 | POST | `/api/glossary/import` | Import glossary terms from parsed CSV/XLSX rows | BrSE |
 
 ### Hourenso Reports
@@ -300,10 +346,14 @@ For a detailed breakdown of all features, please see the [FEATURES.md](./FEATURE
 2. **Smart Hover-to-Translate** — Auto-detection and highlighting of IT glossary terms with trilingual tooltips
 3. **Select-to-Translate** — Select any text and get instant translations via IT Glossary + DeepL
 4. **Automated Hourenso Templates** — Structured 報連相 reporting with quality check and Excel export
-5. **Project Management with RBAC** — Role-based project creation, deletion, scoping, and project language preference
-6. **Task Management with Status Cycling** — Create, edit, delete, and inline status cycling
-7. **Live Dashboard** — Aggregated stats with auto-refresh
-8. **Secure Backend** — JWT auth, role middleware, translation API proxying
+5. **Project Management with RBAC** — Full CRUD (create, edit, delete) with role-based scoping and project language preference
+6. **IT Glossary CRUD** — Add, edit, delete, and bulk import glossary terms with duplicate protection
+7. **Task Management with Status Cycling** — Create, edit, delete, and inline status cycling
+8. **Real-Time Updates** — Socket.io with JWT-authenticated connections for live project/task/glossary events
+9. **Live Dashboard** — Aggregated stats with auto-refresh and recent activity feed
+10. **User Profile** — View account information (name, email, role)
+11. **Secure Backend** — JWT auth, Zod validation, Pino logging, Helmet, rate limiting, CORS credentials
+12. **404 Catch-All** — Production-ready 404 page with navigation options
 
 ---
 
@@ -332,6 +382,7 @@ BridgeSync features a premium, modern design system built on Tailwind CSS v4:
 | View Dashboard | ✅ | ✅ | ✅ | ✅ |
 | View Projects | ✅ | ✅ | ✅ | ✅ |
 | Create Project | ✅ | ✅ | ❌ | ❌ |
+| Edit Project | ✅ | ✅ | ❌ | ❌ |
 | Delete Project | ✅ | ❌ | ❌ | ❌ |
 | Add/Remove Project Members | ✅ | ❌ | ❌ | ❌ |
 | View Tasks | ✅ | ✅ | ✅ | ✅ |
@@ -340,10 +391,12 @@ BridgeSync features a premium, modern design system built on Tailwind CSS v4:
 | Update Task Status | ✅ | ✅ | ✅ | ❌ |
 | View Glossary | ✅ | ✅ | ✅ | ✅ |
 | Add Glossary Term | ❌ | ✅ | ❌ | ❌ |
+| Edit/Delete Glossary Term | ❌ | ✅ | ❌ | ❌ |
 | Import Glossary Terms | ❌ | ✅ | ❌ | ❌ |
 | View Reports | ✅ | ✅ | ✅ | ✅ |
 | Create Report | ✅ | ✅ | ✅ | ❌ |
 | Edit/Delete Report | ✅ | ✅ | ✅ | ❌ |
 | Export Reports (Excel) | ✅ | ✅ | ✅ | ✅ |
+| View Profile | ✅ | ✅ | ✅ | ✅ |
 | Select-to-Translate | ✅ | ✅ | ✅ | ✅ |
 | Hover-to-Translate | ✅ | ✅ | ✅ | ✅ |

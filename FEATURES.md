@@ -34,6 +34,8 @@ BridgeSync contains core MVP features specifically designed to bridge the gap be
     * These definitions are sourced from a curated **IT Glossary** stored in MongoDB (`ITGlossary` collection), ensuring niche accuracy rather than relying on generic API translations.
     * The `GlossaryPage` provides a **server-side searchable and paginated table** for users to study or reference these terms, fetched live from `GET /api/glossary`.
     * **BrSE-only: Add Term** — Users with the `BrSE` role can add new glossary terms via a modal form with trilingual inputs (`baseTerm`, English, Vietnamese, Japanese). This calls `POST /api/glossary`.
+    * **BrSE-only: Edit Term** — BrSE users can click the pencil icon on any glossary row to open an edit modal. Updates are validated with Zod and duplicate base terms are rejected. Calls `PUT /api/glossary/:termId`.
+    * **BrSE-only: Delete Term** — BrSE users can click the trash icon to delete any glossary term with a confirmation dialog. Calls `DELETE /api/glossary/:termId`.
     * **BrSE-only: CSV/XLSX Import** — BrSE users can upload glossary spreadsheets with `baseTerm`, English, Vietnamese, and Japanese columns. The frontend parses `.csv`/`.xlsx` with ExcelJS-backed import, the backend validates rows, normalizes duplicates case-insensitively, and returns imported/skipped counts via `POST /api/glossary/import`.
     * Terms are sorted alphabetically and searchable across all three languages.
 
@@ -43,6 +45,7 @@ BridgeSync contains core MVP features specifically designed to bridge the gap be
 |--------|--------------|--------------|----------|
 | View glossary | Any authenticated | `uat_dev@bridgesync.com` | `Test1234` |
 | Add new term | BrSE only | `brse_final@bridgesync.com` | `Test1234` |
+| Edit/delete term | BrSE only | `brse_final@bridgesync.com` | `Test1234` |
 | Import CSV/XLSX terms | BrSE only | `brse_final@bridgesync.com` | `Test1234` |
 
 ---
@@ -108,13 +111,15 @@ BridgeSync contains core MVP features specifically designed to bridge the gap be
 
 **The Solution:** Role-Based Access Control (RBAC) on both frontend UI and backend endpoints.
 
-* **Implementation:** `ProjectsPage` connected to `GET/POST/DELETE /api/projects`.
+* **Implementation:** `ProjectsPage` connected to `GET/POST/PUT/DELETE /api/projects`.
 * **Mechanics:**
     * **View Projects:** All authenticated users see projects scoped to their membership via `scopedProject` middleware.
     * **Create Project:** PM and BrSE roles see a "New Project" button that opens a modal form with project name, description, and preferred reporting language fields. Calls `POST /api/projects`.
+    * **Edit Project:** PM and BrSE roles can click the pencil icon on any project card to open an edit modal. The form pre-fills with the current project name, description, and preferred language. Validated with Zod schema. Calls `PUT /api/projects/:id`.
     * **Delete Project:** PM-only. A trash icon appears on each project card. Requires confirmation dialog. Calls `DELETE /api/projects/:id`.
     * **Member Management:** PM users can add and remove project members from a project-scoped modal.
     * **Project Cards:** Display project name, description, preferred language badge (EN/VI/JA), status badge (Active/Archived), member count, and creation date.
+    * **Real-Time Updates:** Project changes are broadcast via Socket.io (`project:created`, `project:updated`, `project:deleted` events).
     * **Loading States:** Skeleton spinners while data loads. Error banners on API failures. Empty state for new users.
 
 ### Test Accounts for This Feature
@@ -123,6 +128,7 @@ BridgeSync contains core MVP features specifically designed to bridge the gap be
 |--------|--------------|--------------|----------|
 | View projects | Any authenticated | `uat_dev@bridgesync.com` | `Test1234` |
 | Create project | PM or BrSE | `pm_final@bridgesync.com` | `Test1234` |
+| Edit project | PM or BrSE | `pm_final@bridgesync.com` | `Test1234` |
 | Delete project | PM only | `pm_final@bridgesync.com` | `Test1234` |
 
 ---
@@ -196,12 +202,81 @@ BridgeSync contains core MVP features specifically designed to bridge the gap be
         * Frontend stores token and refresh token in `localStorage` and auto-injects the access token via `authFetch()`.
         * Expired access tokens trigger `/api/auth/refresh` once, retry the failed request with the new token, and only fall back to a clean logout when refresh fails.
         * Refresh tokens are stored hashed in MongoDB and rotated on every refresh request.
-        * API responses use a consistent error shape with `message` and `error.code`.
-        * Helmet security headers and API rate limiting are enabled in Express.
+    * API responses use a consistent error shape with `message` and `error.code`.
+        * **Zod Validation:** Every mutating API route (POST/PUT/DELETE) is protected by Zod schemas in `server/validators/`. The `validate.js` middleware automatically rejects malformed payloads with structured error messages before they reach the controller.
+        * **Structured Logging:** All backend logging uses **Pino** for structured JSON output. Zero `console.log` calls remain in the codebase.
+        * **Password Strength:** Registration enforces at least one uppercase letter and one digit in passwords.
+        * Helmet security headers, CORS with credentials, and API rate limiting (300 req / 15 min) are enabled in Express.
 
 ---
 
-## 9. Premium UI/UX Design System
+## 9. Real-Time Communication (Socket.io)
+
+**The Problem:** Polling-based data fetching creates unnecessary server load and delays. Team members need to see updates (new projects, tasks, glossary changes) in real time without manual page refreshes.
+
+**The Solution:** A Socket.io server with JWT-authenticated connections that broadcasts domain events to all connected clients.
+
+* **Implementation:** `server/socket.js` for server-side event emission + `src/socket.js` + `useSocketEvents` hook for client-side subscriptions.
+* **Mechanics:**
+    * **JWT Authentication:** Socket.io connections require a valid access token passed during the handshake (`auth.token`). Unauthenticated connections are rejected.
+    * **Event Broadcasting:** Controllers emit events via `emitEvent()` after successful mutations:
+        * `project:created`, `project:updated`, `project:deleted`
+        * `task:created`, `task:updated`, `task:deleted`
+        * `glossary:changed` (with action: add/update/delete)
+        * `hourenso:created`, `hourenso:updated`, `hourenso:deleted`
+    * **Client Handling:** The `useSocketEvents` hook listens for events and invalidates relevant React Query caches, triggering automatic UI re-renders without full refetches.
+    * **Lifecycle Management:** The socket connection is created on login and disconnected on logout via the `AuthContext`.
+
+---
+
+## 10. User Profile Page
+
+**The Problem:** Users need a quick way to view their account details without navigating to system settings.
+
+**The Solution:** A clean profile page accessible from the sidebar avatar.
+
+* **Implementation:** `ProfilePage.jsx` at `/profile`, linked from the sidebar user section.
+* **Mechanics:**
+    * Displays user name, email, and role in a card layout with avatar initial.
+    * Role labels are human-readable (e.g., "Bridge SE" instead of "BrSE").
+    * Fully internationalized across EN/VI/JA locales.
+    * Clicking the user avatar/name in the sidebar navigates to the profile page.
+
+---
+
+## 11. 404 Catch-All Page
+
+**The Problem:** Navigating to non-existent routes showed a blank screen, creating a confusing user experience.
+
+**The Solution:** A production-ready 404 page with navigation options.
+
+* **Implementation:** `NotFoundPage.jsx` rendered on the `*` catch-all route.
+* **Mechanics:**
+    * Displays a prominent "404" heading with a clear "Page not found" message.
+    * Provides "Go to Dashboard" and "Go Back" navigation buttons.
+    * Fully styled with the application's design system (glassmorphism, micro-animations).
+
+---
+
+## 12. Production Hardening & Test Infrastructure
+
+**The Problem:** A production application needs comprehensive input validation, structured logging, and automated test suites to ensure stability and prevent regressions.
+
+**The Solution:** A multi-layer hardening approach covering security, code quality, and automated testing.
+
+* **Zod Validation Schemas:** Every mutating API endpoint is protected by Zod schemas (`server/validators/`). The centralized `validate.js` middleware rejects invalid payloads with structured error messages.
+* **Pino Structured Logging:** All server-side logging uses Pino for JSON-formatted output — including the seed script. Zero `console.log` calls remain.
+* **Sonner Toast Notifications:** All frontend mutation feedback uses Sonner for consistent, non-blocking success/error toasts.
+* **Global Error Boundary:** A React `ErrorBoundary` component catches uncaught rendering errors and displays a user-friendly recovery screen (fully i18n).
+* **Husky + lint-staged:** Pre-commit hooks enforce ESLint on all staged files.
+* **Test Suites:**
+    * **Frontend (Vitest):** 18 unit tests covering Button, Card, Modal, and NotFoundPage components.
+    * **Backend (Node.js test runner):** 19 tests covering RBAC unit tests (9) and API integration tests (10).
+    * All tests pass with zero errors and zero warnings.
+
+---
+
+## 13. Premium UI/UX Design System
 
 **The Problem:** Default utility classes produce generic-looking interfaces that lack visual hierarchy, depth, and polish. A project management tool used by cross-cultural teams needs to feel professional and intuitive regardless of the user's technical background.
 
@@ -227,8 +302,9 @@ BridgeSync contains core MVP features specifically designed to bridge the gap be
         * `SelectTranslate`: Global floating translation widget with viewport-aware positioning.
         * `TextHighlighter`: Auto-parses text to wrap glossary terms in interactive tooltips.
         * `LanguageToggle`: iOS-style segmented control with flag emojis.
+        * `Toaster`: Sonner-based toast notification system.
     * **Layout:**
-        * **Sidebar:** Collapsible with smooth CSS transition, active nav indicator, user avatar footer.
+        * **Sidebar:** Collapsible with smooth CSS transition, active nav indicator, clickable user avatar linked to profile page.
         * **Topbar:** Glassmorphic with language toggle.
         * **Responsive:** Mobile drawer sidebar on small screens, full sidebar on `lg:` breakpoint.
 
