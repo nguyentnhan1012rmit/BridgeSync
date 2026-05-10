@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Download, ChevronDown, ChevronUp, Calendar, User, Loader2, AlertCircle, FileText, Sparkles, CheckCircle2, Pencil, Trash2 } from 'lucide-react'
 import { Card, Button, Modal, TextHighlighter } from '@/components/ui'
@@ -237,7 +238,9 @@ export default function HourensoPage() {
       queryClient.invalidateQueries({ queryKey: ['hourenso', selectedProject] })
       setShowCreate(false)
       setForm({ ...emptyForm })
+      toast.success(t('hourenso.newReport'), { description: 'Report submitted successfully' })
     },
+    onError: (err) => toast.error(err?.message || 'Failed to create report'),
   })
 
   const buildReportPayload = () => ({
@@ -266,14 +269,18 @@ export default function HourensoPage() {
       queryClient.invalidateQueries({ queryKey: ['hourenso', selectedProject] })
       setEditingReport(null)
       setForm({ ...emptyForm })
+      toast.success('Report updated')
     },
+    onError: (err) => toast.error(err?.message || 'Failed to update report'),
   })
 
   const deleteMutation = useMutation({
     mutationFn: deleteReport,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['hourenso', selectedProject] })
+      toast.success('Report deleted')
     },
+    onError: (err) => toast.error(err?.message || 'Failed to delete report'),
   })
 
   const handleSubmitReport = (e) => {
@@ -358,6 +365,7 @@ export default function HourensoPage() {
       URL.revokeObjectURL(url)
     } catch {
       setExportError('Failed to export reports. Please try again.')
+      toast.error('Export failed')
     } finally {
       setIsExporting(false)
     }

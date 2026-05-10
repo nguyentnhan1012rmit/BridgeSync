@@ -23,7 +23,6 @@ export default function DashboardPage() {
   const { data, isLoading } = useQuery({
     queryKey: ['dashboardStats'],
     queryFn: getDashboardStats,
-    refetchInterval: 30000,
   })
 
   // ── Fetch glossary terms ──

@@ -1,6 +1,7 @@
 const Task = require('../models/Tasks')
 const mongoose = require('mongoose')
 const { sendError, sendServerError } = require('../utils/httpResponses')
+const { emitEvent } = require('../socket')
 
 const allowedStatuses = ['ongoing', 'completed', 'delayed'];
 
@@ -56,6 +57,7 @@ const createTask = async (req, res) => {
 
         await savedTask.populate('assigneeId', 'name role');
         await savedTask.populate('reporterId', 'name role');
+        emitEvent('task:created', { projectId: String(req.project._id), task: savedTask });
         res.status(201).json(savedTask)
     } catch (error) {
         sendServerError(res, error)
@@ -91,6 +93,7 @@ const updateTask = async (req, res) => {
         await task.populate('assigneeId', 'name role');
         await task.populate('reporterId', 'name role');
 
+        emitEvent('task:updated', { projectId: String(task.projectId), task });
         res.json(task);
     } catch (error) {
         sendServerError(res, error)
@@ -111,6 +114,7 @@ const updateTaskStatus = async (req, res) => {
         await task.populate('assigneeId', 'name role');
         await task.populate('reporterId', 'name role');
 
+        emitEvent('task:updated', { projectId: String(task.projectId), task });
         res.json(task);
     } catch (error) {
         sendServerError(res, error)
@@ -120,7 +124,10 @@ const updateTaskStatus = async (req, res) => {
 // @route DELETE /api/tasks/:taskId
 const deleteTask = async (req, res) => {
     try {
+        const projectId = String(req.task.projectId);
+        const taskId = String(req.task._id);
         await req.task.deleteOne();
+        emitEvent('task:deleted', { projectId, taskId });
         res.json({ message: 'Task deleted successfully' });
     } catch (error) {
         sendServerError(res, error)

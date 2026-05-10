@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import LanguageToggle from '@/components/LanguageToggle'
 import { useAuth } from '@/hooks/useAuth'
+import { useSocketEvents } from '@/hooks/useSocketEvents'
 
 const navItems = [
   { key: 'dashboard', path: '/', icon: LayoutDashboard },
@@ -28,6 +29,7 @@ export default function MainLayout() {
   const { t } = useTranslation()
   const { user, logout } = useAuth()
   const [mobileOpen, setMobileOpen] = useState(false)
+  useSocketEvents()
 
   return (
     <div className="flex h-screen bg-transparent overflow-hidden">

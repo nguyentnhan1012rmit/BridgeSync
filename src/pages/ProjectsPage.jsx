@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Users, Calendar, Trash2, Loader2, AlertCircle, FolderKanban, Languages, ChevronDown, UserPlus, UserMinus } from 'lucide-react'
 import { Card, Button, Modal, TextHighlighter } from '@/components/ui'
@@ -57,14 +58,18 @@ export default function ProjectsPage() {
       queryClient.invalidateQueries({ queryKey: ['projects'] })
       setShowCreate(false)
       setForm({ name: '', description: '', preferredLanguage: 'ja' })
+      toast.success(t('projects.newProject'), { description: 'Project created successfully' })
     },
+    onError: (err) => toast.error(err?.message || 'Failed to create project'),
   })
 
   const deleteMutation = useMutation({
     mutationFn: deleteProject,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects'] })
+      toast.success('Project deleted')
     },
+    onError: (err) => toast.error(err?.message || 'Failed to delete project'),
   })
 
   const addMemberMutation = useMutation({
@@ -73,7 +78,9 @@ export default function ProjectsPage() {
       queryClient.invalidateQueries({ queryKey: ['projectMembers', manageProject?._id] })
       queryClient.invalidateQueries({ queryKey: ['projects'] })
       setSelectedMemberId('')
+      toast.success('Member added')
     },
+    onError: (err) => toast.error(err?.message || 'Failed to add member'),
   })
 
   const removeMemberMutation = useMutation({
@@ -81,7 +88,9 @@ export default function ProjectsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projectMembers', manageProject?._id] })
       queryClient.invalidateQueries({ queryKey: ['projects'] })
+      toast.success('Member removed')
     },
+    onError: (err) => toast.error(err?.message || 'Failed to remove member'),
   })
 
   const handleCreate = (e) => {

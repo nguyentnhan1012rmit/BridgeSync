@@ -4,6 +4,7 @@ const Task = require('../models/Tasks')
 const HourensoReports = require('../models/HourensoReports')
 const User = require('../models/Users')
 const { sendError, sendServerError } = require('../utils/httpResponses')
+const { emitEvent } = require('../socket')
 
 // @route   GET /api/projects
 const getProjects = async (req, res) => {
@@ -61,6 +62,7 @@ const createProject = async (req, res) => {
         });
 
         const savedProject = await project.save();
+        emitEvent('project:created', { project: savedProject });
         res.status(201).json(savedProject)
     } catch (error) {
         sendServerError(res, error)
@@ -74,7 +76,9 @@ const deleteProject = async (req, res) => {
             Task.deleteMany({ projectId: req.project._id }),
             HourensoReports.deleteMany({ projectId: req.project._id }),
         ]);
+        const projectId = String(req.project._id);
         await req.project.deleteOne();
+        emitEvent('project:deleted', { projectId });
         res.json({ message: 'Project deleted successfully' })
     } catch (error) {
         sendServerError(res, error)
@@ -120,6 +124,7 @@ const addProjectMember = async (req, res) => {
         if (!alreadyMember) {
             req.project.members.push(user._id);
             await req.project.save();
+            emitEvent('project:updated', { projectId: String(req.project._id) });
         }
 
         await req.project.populate('members', 'name email role');
@@ -140,6 +145,7 @@ const removeProjectMember = async (req, res) => {
 
         req.project.members = req.project.members.filter(memberId => memberId.toString() !== userId.toString());
         await req.project.save();
+        emitEvent('project:updated', { projectId: String(req.project._id) });
 
         await req.project.populate('members', 'name email role');
         res.json(req.project.members);

@@ -1,5 +1,6 @@
 import { useDeferredValue, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Search, Plus, Loader2, AlertCircle, BookOpen, Upload, CheckCircle2 } from 'lucide-react'
 import { Card, Button, Modal } from '@/components/ui'
@@ -128,7 +129,9 @@ export default function GlossaryPage() {
       queryClient.invalidateQueries({ queryKey: ['glossaryPage'] })
       setShowAdd(false)
       setForm({ baseTerm: '', en: '', vi: '', ja: '' })
+      toast.success(t('glossary.addTerm'), { description: 'Term added successfully' })
     },
+    onError: (err) => toast.error(err?.message || 'Failed to add term'),
   })
 
   const importMutation = useMutation({
@@ -137,7 +140,9 @@ export default function GlossaryPage() {
       queryClient.invalidateQueries({ queryKey: ['glossary'] })
       queryClient.invalidateQueries({ queryKey: ['glossaryPage'] })
       setImportResult(result)
+      toast.success(`Imported ${result?.imported ?? 0} terms`)
     },
+    onError: (err) => toast.error(err?.message || 'Import failed'),
   })
 
   const handleAdd = (e) => {

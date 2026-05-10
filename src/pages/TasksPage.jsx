@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Info, Loader2, AlertCircle, ChevronDown, ListChecks, Pencil, Trash2 } from 'lucide-react'
 import { Card, Button, Modal, TextHighlighter } from '@/components/ui'
@@ -58,7 +59,9 @@ export default function TasksPage() {
       queryClient.invalidateQueries({ queryKey: ['tasks', selectedProject] })
       setShowCreate(false)
       setForm({ title: '', description: '', assigneeId: '' })
+      toast.success(t('tasks.newTask'), { description: 'Task created successfully' })
     },
+    onError: (err) => toast.error(err?.message || 'Failed to create task'),
   })
 
   // ── Update task status ──
@@ -67,6 +70,7 @@ export default function TasksPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks', selectedProject] })
     },
+    onError: (err) => toast.error(err?.message || 'Failed to update status'),
   })
 
   const updateTaskMutation = useMutation({
@@ -75,14 +79,18 @@ export default function TasksPage() {
       queryClient.invalidateQueries({ queryKey: ['tasks', selectedProject] })
       setEditingTask(null)
       setForm({ title: '', description: '', assigneeId: '' })
+      toast.success('Task updated')
     },
+    onError: (err) => toast.error(err?.message || 'Failed to update task'),
   })
 
   const deleteTaskMutation = useMutation({
     mutationFn: deleteTask,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks', selectedProject] })
+      toast.success('Task deleted')
     },
+    onError: (err) => toast.error(err?.message || 'Failed to delete task'),
   })
 
   const handleCreate = (e) => {

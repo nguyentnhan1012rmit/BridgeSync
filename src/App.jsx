@@ -4,6 +4,7 @@ import MainLayout from '@/layouts/MainLayout'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import SelectTranslate from '@/components/ui/SelectTranslate'
+import { Toaster } from '@/components/ui'
 import { AuthProvider } from '@/context/AuthContext'
 
 const DashboardPage = lazy(() => import('@/pages/DashboardPage'))
@@ -25,6 +26,7 @@ export default function App() {
   return (
     <AuthProvider>
       <SelectTranslate />
+      <Toaster />
       <ErrorBoundary>
         <Suspense fallback={routeFallback}>
           <Routes>

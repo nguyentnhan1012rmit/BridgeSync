@@ -1,5 +1,6 @@
 const HourensoReports = require('../models/HourensoReports');
 const { sendError, sendServerError } = require('../utils/httpResponses');
+const { emitEvent } = require('../socket');
 
 const validateReportPayload = ({ houkoku, soudan }, res) => {
     if (!houkoku || !houkoku.currentStatus || !houkoku.progress || !houkoku.issues || !houkoku.nextSteps) {
@@ -38,6 +39,7 @@ const createReport = async (req, res) => {
 
         const savedReport = await report.save();
         await savedReport.populate('authorId', 'name role');
+        emitEvent('report:created', { projectId: String(req.project._id), report: savedReport });
         res.status(201).json(savedReport)
     } catch (error) {
         sendServerError(res, error)
@@ -58,6 +60,7 @@ const updateReport = async (req, res) => {
         const report = await req.report.save();
         await report.populate('authorId', 'name role');
 
+        emitEvent('report:updated', { projectId: String(report.projectId), report });
         res.json(report);
     } catch (error) {
         sendServerError(res, error)
@@ -80,7 +83,10 @@ const getProjectReports = async (req, res) => {
 // @route DELETE /api/hourenso/reports/:reportId
 const deleteReport = async (req, res) => {
     try {
+        const projectId = String(req.report.projectId);
+        const reportId = String(req.report._id);
         await req.report.deleteOne();
+        emitEvent('report:deleted', { projectId, reportId });
         res.json({ message: 'Report deleted successfully' });
     } catch (error) {
         sendServerError(res, error)

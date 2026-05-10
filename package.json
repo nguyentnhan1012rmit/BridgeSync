@@ -13,7 +13,13 @@
     "test:api": "cd server && npm test",
     "test:ui": "vitest run",
     "test": "npm run test:api && npm run test:ui",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{js,jsx}": [
+      "eslint --fix --max-warnings=0"
+    ]
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.2",
@@ -26,6 +32,8 @@
     "react-dom": "^19.2.4",
     "react-i18next": "^17.0.1",
     "react-router-dom": "^7.13.2",
+    "socket.io-client": "^4.8.3",
+    "sonner": "^2.0.7",
     "tailwindcss": "^4.2.2"
   },
   "devDependencies": {
@@ -42,7 +50,9 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.4.0",
+    "husky": "^9.1.7",
     "jsdom": "^29.1.1",
+    "lint-staged": "^17.0.4",
     "vite": "^8.0.1",
     "vitest": "^4.1.5"
   }

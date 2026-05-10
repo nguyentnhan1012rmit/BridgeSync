@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { Globe, Monitor } from 'lucide-react'
+import { Globe } from 'lucide-react'
 import { Card } from '@/components/ui'
 import LanguageToggle from '@/components/LanguageToggle'
 
@@ -31,24 +31,6 @@ export default function SettingsPage() {
             <div style={{ marginTop: '12px' }}>
               <LanguageToggle />
             </div>
-          </div>
-        </div>
-      </Card>
-
-      {/* Display Setting */}
-      <Card>
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-          <div style={{ padding: '8px', borderRadius: '8px', flexShrink: 0 }} className="bg-accent/8">
-            <Monitor size={18} className="text-accent-dark" />
-          </div>
-          <div style={{ minWidth: 0, flex: 1 }}>
-            <h2 style={{ fontSize: '0.9375rem', fontWeight: 500 }} className="text-text-primary">Display</h2>
-            <p style={{ fontSize: '0.8125rem', marginTop: '4px' }} className="text-text-muted">
-              Interface density and visual preferences
-            </p>
-            <p style={{ fontSize: '0.8125rem', marginTop: '8px', fontStyle: 'italic' }} className="text-text-muted">
-              More settings coming soon.
-            </p>
           </div>
         </div>
       </Card>

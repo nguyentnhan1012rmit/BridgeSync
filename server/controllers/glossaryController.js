@@ -1,5 +1,6 @@
 const ITGlossary = require('../models/ITGlossary')
 const { sendError, sendServerError } = require('../utils/httpResponses')
+const { emitEvent } = require('../socket')
 
 const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -95,6 +96,7 @@ const addGlossaryTerm = async (req, res) => {
 
         const newTerm = new ITGlossary(buildGlossaryPayload({ baseTerm, translations }, req.user._id))
         const savedTerm = await newTerm.save();
+        emitEvent('glossary:changed', { action: 'add', term: savedTerm });
         res.status(201).json(savedTerm)
     } catch (error) {
         if (error.code === 11000) {
@@ -168,6 +170,9 @@ const importGlossaryTerms = async (req, res) => {
             duplicateInFile: duplicateInFileCount,
             duplicateInDatabase: duplicateInDatabaseCount,
         });
+        if (imported > 0) {
+            emitEvent('glossary:changed', { action: 'import', imported });
+        }
     } catch (error) {
         if (error.code === 11000) {
             return sendError(res, 400, 'One or more terms already exist in the glossary.', 'DUPLICATE_GLOSSARY_TERM')
