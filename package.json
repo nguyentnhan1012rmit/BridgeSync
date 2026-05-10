@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "postinstall": "npm install --prefix server",
     "start": "concurrently \"vite\" \"npm run server\"",
     "dev": "concurrently \"vite\" \"npm run server\"",
     "server": "cd server && npm run dev",
